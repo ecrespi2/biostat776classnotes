@@ -3,6 +3,9 @@ title: "Demo Rmarkdown"
 author: "Elizabeth Crespi"
 date: "2024-08-30"
 output: html_document
+bibliography: ["my-refs1.bib", "my-refs2.bib"]
+csl: biomed-central.csl
+
 ---
 
 ```{r setup, include=FALSE}
@@ -40,3 +43,6 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
