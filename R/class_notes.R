@@ -6,7 +6,7 @@ print(RStudio.Version()$version)
 ##in terminal, run: "git --version"
 
 #################################################
-##### CLASS NOTES: CLASSES 1-2
+##### CLASS NOTES: Lectures 1-5 - introduction, git/github, reprex, Rmarkdown, reproducibility
 ##################################################
 ## Create an Rstudio project
   #usethis::create_project("~/Desktop/biostat776classnotes")
@@ -58,7 +58,7 @@ sessioninfo::session_info()
   #to create: File --> new file --> R Markdown
 
 #################################################
-##### CLASS NOTES: LECTURE 6
+##### CLASS NOTES: LECTURE 6 - reference management
 ##################################################
 ## options for citing rmarkdown
 citation("rmarkdown")
@@ -94,7 +94,7 @@ list.files()
   # online reference management software
 
 #################################################
-##### CLASS NOTES: LECTURE 7
+##### CLASS NOTES: LECTURE 7 - Reading and writing data
 ##################################################
 ## Get workiing directory
 getwd()
@@ -167,8 +167,157 @@ logs <- read_csv(here("data", "2016-07-19.csv.bz2"),
 
 logdates <- read_csv(here("data", "2016-07-19.csv.bz2"),
                      col_types = cols_only(date = col_date()),
-                     n_max = 10) #read only first column
+                     n_max = 10) #read only first
 
+
+#################################################
+##### CLASS NOTES: LECTURE 8 -  Managing data frames with the Tidyverse
+##################################################
+
+########     TIBBLES      ########
+## Data frames vs. tibbles
+  # data frames remove spaces from names and convert them to periods or "x"; tibbles do not
+  # tibbles don't have row names
+  # tibbles print first ten rows and columns that fit on one screen; data frames can print too much
+
+## Load tidyverse (tibble is part of tidyverse package)
+library("tidyverse")
+library ("here")
+
+## Read in RDS data as dataframe
+chicago <- readRDS(here("data", "chicago.rds"))
+
+## Get dimensions of data frame
+dim(chicago)
+
+## Get some info on what hte data frame looks like
+str(chicago)
+
+## Get some info on what hte data frame looks like as a tibble
+str(as_tibble(chicago))
+
+## Create a tibble from scratch
+df <- tibble(
+  a = 1:5,
+  b = 6:10,
+  c = 1,
+  z = (a + b)^2 + c
+)
+
+## Tibbles can have column names that data frames cannot
+tibble(
+  `two words` = 1:5,
+  `12` = "numeric",
+  `:)` = "smile",
+)
+
+## Subsetting tibbles
+df$z  #lists everything in column z
+df[["z"]]  #lists everything in column z
+df[[4]]  #lists everything in the fourth column (z)
+
+
+
+########     DPLYR    ########
+##  Some notes
+  # The first argument for DPLYR commnas is always a data fram type object
+  # Subsequent arguments describe what to do with the data frame - don't need $
+  # Return result is a new data frame
+  # Key 'verbs": select(), filter(), arrange(), rename(), mutate(), summarize(), slice_*
+  # %>%: the “pipe” operator is used to connect multiple verb actions together into a pipeline
+
+library(dplyr)
+chicago <- as_tibble(chicago)
+str(chicago)
+
+## SELECT: return a subset of the columns of a data frame, using a flexible notation
+subset <- select(chicago, city:dptp)   # select only columns from city-dptp
+select(chicago, -(city:dptp))   # select all columns except those from city:dptp
+subset <- select(chicago, ends_with("2"))   # select only columns ending in 2
+subset <- select(chicago, starts_with("d"))   # select only columns starting with d
+
+## FILTER: extract a subset of rows from a data frame based on logical conditions
+chic.f <- filter(chicago, pm25tmean2 > 30)   #keep only records where pm25tmean >30
+chic.f <- filter(chicago, pm25tmean2 > 30 & tmpd > 80)   #keep only records where pm25tmean >30 and tmpd > 80
+
+## ARRANGE: reorder rows of a data frame
+chicago <- arrange(chicago, date) # sort rows by date (ascending)
+chicago <- arrange(chicago, desc(date)) # sort rows by date (descending)
+
+## RENAME: rename variables in a data frame
+chicago <- rename(chicago, dewpoint = dptp, pm25 = pm25tmean2) #rename dewpoint column to dptp and pm25 to pm25tmean2
+
+
+## MUTATE: add new variables/columns or transform existing variables
+chicago <- mutate(chicago, pm25detrend = pm25 - mean(pm25, na.rm = TRUE)) #create var pm25detrend which is pm25-mean(pm25)
+chicago <- mutate(chicago, year = as.POSIXlt(date)$year + 1900) #extract year from date
+
+
+## SUMMARIZE: generate summary statistics of different variables in the data frame, possibly within strata
+years <- group_by(chicago, year) #use group_by to create dataframe that splits chicago df by year
+summarize(years,
+          pm25 = mean(pm25, na.rm = TRUE),
+          o3 = max(o3tmean2, na.rm = TRUE),
+          no2 = median(no2tmean2, na.rm = TRUE)) # summarize mean, max, and median of some variables in years df
+
+## USING %>%
+chicago %>%
+  mutate(year = as.POSIXlt(date)$year + 1900) %>%
+  group_by(year) %>%
+  summarize(
+    pm25 = mean(pm25, na.rm = TRUE),
+    o3 = max(o3tmean2, na.rm = TRUE),
+    no2 = median(no2tmean2, na.rm = TRUE)
+  )
+
+mutate(chicago, month = as.POSIXlt(date)$mon + 1) %>%
+  group_by(month) %>%
+  summarize(
+    pm25 = mean(pm25, na.rm = TRUE),
+    o3 = max(o3tmean2, na.rm = TRUE),
+    no2 = median(no2tmean2, na.rm = TRUE)
+  ) # compute the average pollutant level by month
+
+## SLICE_*: shows rows of data
+slice_sample(chicago, n = 10) # show 10 randomly selected rows
+slice_head(chicago, n = 5) # show first 5 rows
+slice_tail(chicago, n = 5) # show last 5 rows
+
+## side note about random seelction
+set.seed(20240905) #set seed so you will get same numbers every time
+rnorm(n=5) # randomly generate 5 numbers
+
+
+
+#################################################
+##### CLASS NOTES: LECTURE 9 -  Tidy data and the Tidyverse
+##################################################
+
+## Load tidyverse, which includes dplyr, tidyr, readr, ggplot2
+library(tidyr)
+relig_income
+
+
+
+#PIVOT_LONGER: turn wide dataset to long
+relig_income %>%
+  pivot_longer(-religion, names_to = "income", values_to = "respondents") %>%
+  mutate(religion = factor(religion), income = factor(income))
+
+relig_income %>%
+  pivot_longer(-religion, names_to = "income", values_to = "respondents") # gather everything EXCEPT religion to tidy data
+
+#PIVOT_WIDER: turn long dataset to wide
+relig_income %>%
+  pivot_longer(-religion, names_to = "income", values_to = "respondents") %>%
+  mutate(religion = factor(religion), income = factor(income)) %>%
+  group_by(income) %>%
+  summarize(total_respondents = sum(respondents)) %>%
+  pivot_wider(
+    names_from = "income",
+    values_from = "total_respondents"
+  ) %>%
+  knitr::kable() # summarize the total number of respondents per income category
 
 
 
