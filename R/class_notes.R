@@ -298,7 +298,6 @@ library(tidyr)
 relig_income
 
 
-
 #PIVOT_LONGER: turn wide dataset to long
 relig_income %>%
   pivot_longer(-religion, names_to = "income", values_to = "respondents") %>%
@@ -318,6 +317,341 @@ relig_income %>%
     values_from = "total_respondents"
   ) %>%
   knitr::kable() # summarize the total number of respondents per income category
+
+
+#################################################
+##### CLASS NOTES: LECTURE 10 -  Joining data in R
+##################################################
+
+## Notes on join functions
+library(knitr)
+join_funcs <- data.frame(
+  func = c(
+    "`left_join()`",
+    "`right_join()`",
+    "`inner_join()`",
+    "`full_join()`"
+  ),
+  does = c(
+    "Includes all observations in the left data frame, whether or not there is a match in the right data frame",
+    "Includes all observations in the right data frame, whether or not there is a match in the left data frame",
+    "Includes only observations that are in both data frames",
+    "Includes all observations from both data frames"
+  )
+)
+knitr::kable(join_funcs, col.names = c("Function", "What it includes in merged data frame"))
+
+  # left_join(): Includes all observations in the left data frame, whether or not there is a match in the right data frame
+  # right_join(): Includes all observations in the right data frame, whether or not there is a match in the left data frame
+  # inner_join(): Includes only observations that are in both data frames
+  # full_join(): Includes all observations from both data frames
+
+## Load tidyverse
+library(tidyverse)
+help(package = "tidyverse")
+
+## Create two tibbles 'outcomes' and 'subjects'
+outcomes <- tibble(
+  id = rep(c("a", "b", "c"), each = 3),
+  visit = rep(0:2, 3),
+  outcome = rnorm(3 * 3, 3)
+)
+
+subjects <- tibble(
+  id = c("a", "b", "c"),
+  visit = c(0, 1, 0),
+  house = c("detached", "rowhouse", "rowhouse"),
+)
+
+print(subjects)
+print(outcomes)
+
+
+## LEFT JOIN
+left_join(outcomes, subjects, by = c("id", "visit"))
+
+
+## Change table
+subjects <- tibble(
+  id = c("b", "c"),
+  visit = c(1, 0),
+  house = c("rowhouse", "rowhouse"),
+)
+
+subjects
+
+
+## LEFT JOIN
+left_join(x = outcomes, y = subjects, by = c("id", "visit"))
+
+
+## INNER JOIN
+inner_join(x = outcomes, y = subjects, by = c("id", "visit"))
+
+
+## RIGHT JOIN
+right_join(x = outcomes, y = subjects, by = c("id", "visit"))
+
+
+#################################################
+##### CLASS NOTES: LECTURE 11 - ggplot
+##################################################
+## Recommended books:
+  # ggplot2: Elegant Graphics for Data Analysis (3e) https://ggplot2-book.org/
+  # R Graphics Cookbook, 2nd edition https://r-graphics.org/
+
+## Load libraries and data
+library("tidyverse")
+library("here")
+maacs <- read_csv(here("data", "bmi_pm25_no2_sim.csv"),
+                  col_types = "nnci"
+)
+maacs
+
+
+## Create empty plot for logpm25 vs nocturnal symptoms
+g <- ggplot(maacs, aes(
+  x = logpm25,
+  y = NocturnalSympt
+))
+summary(g)
+class(g)
+print(g)
+
+## Create empty plot for logpm25 vs nocturnal symptoms in a different way
+g <- maacs %>%
+  ggplot(aes(logpm25, NocturnalSympt))
+print(g)
+
+
+## Create scatterplot of PM2.5 and days with nocturnal symptoms
+g <- maacs %>%
+  ggplot(aes(logpm25, NocturnalSympt))
+g + geom_point()
+
+
+## Create scatterplot with smoother of PM2.5 and days with nocturnal symptoms
+g +
+  geom_point() +
+  geom_smooth()
+
+
+## Create scatterplot with regression line of PM2.5 and days with nocturnal symptoms
+g +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+
+## Create scatterplot with regression line of PM2.5 and days with nocturnal symptoms
+library("palmerpenguins")
+glimpse(penguins)
+
+penguins %>%
+  ggplot(aes(
+    x = flipper_length_mm,
+    y = bill_length_mm,
+    color = species)) +
+  geom_point() +
+  geom_smooth()
+
+## Create scatterplot with regression line and facet grid by bmicat of PM2.5 and days with nocturnal symptoms
+g +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_grid(. ~ bmicat)
+
+
+## Change color, size, and transparency of point
+g + geom_point(color = "steelblue", size = 4, alpha = 1 / 2)
+
+
+## Make point color based on bmicat
+g + geom_point(aes(color = bmicat), size = 4, alpha = 1 / 2)
+
+## Add smooth line with specified linewidth and type
+g +
+  geom_point(aes(color = bmicat),
+             size = 2,
+             alpha = 1 / 2
+  ) +
+  geom_smooth(
+    linewidth = 4,
+    linetype = 3,
+    method = "lm",
+    se = FALSE #specifies if SE is shown
+  )
+
+## Specify plot theme
+apropos("theme")
+
+g +
+  geom_point(aes(color = bmicat)) +
+  theme_bw(base_family = "Times")
+
+
+## Specify plot labels
+g +
+  geom_point(aes(color = bmicat)) +
+  labs(title = "MAACS Cohort") +
+  labs(
+    x = expression("log " * PM[2.5]),
+    y = "Nocturnal Symptoms"
+  )
+
+
+## Specify data frame to work with
+testdat <- data.frame(
+  x = 1:100,
+  y = rnorm(100)
+)
+testdat[50, 2] <- 100 ## Add an Outlier!
+plot(testdat$x,
+     testdat$y,
+     type = "l",
+     ylim = c(-3, 3)
+)
+
+
+## Time series plot with default settings
+g <- ggplot(testdat, aes(x = x, y = y))
+g + geom_line()
+
+
+## Time series plot with modified scale on y axis
+g +
+  geom_line() +
+  ylim(-3, 3)
+
+
+## Time series plot with restricted scale on y axis
+g +
+  geom_line() +
+  coord_cartesian(ylim = c(-3, 3))
+
+
+## Install bbplot
+  ## remotes::install_github("bbc/bbplot")
+library("bbplot")
+
+## Basic ggplot2 object with our data
+g <- maacs %>%
+  ggplot(aes(logpm25, NocturnalSympt))
+
+## A plot we made before, but this time without the SE lines
+g +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(. ~ bmicat)
+
+## Now let's add bbplot::bbc_style()
+g +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(. ~ bmicat) +
+  bbplot::bbc_style()
+
+
+## Add labels
+g +
+  geom_point() +
+  geom_smooth(colour = "#1380A1", method = "lm", se = FALSE) +
+  facet_grid(. ~ bmicat) +
+  bbplot::bbc_style() +
+  labs(
+    title = "Child asthma's link to air quality worsens in overweight children",
+    subtitle = "Number of days with symptoms vs PM2.5 by weight group"
+  )
+
+
+## Get rid of points and change colors
+g +
+  geom_smooth(aes(colour = bmicat), method = "lm", se = FALSE, linewidth = 2) +
+  scale_colour_manual(values = c("#FAAB18", "#1380A1")) + ##
+  bbplot::bbc_style() +
+  labs(
+    title = "Child asthma's link to air quality worsens in overweight children",
+    subtitle = "Number of days with symptoms vs PM2.5 by weight group"
+  )
+
+
+## Install ThemePark from GitHub
+  ## remotes::install_github("MatthewBJane/theme_park")
+
+
+## Barbie-inspired theme
+g +
+  geom_smooth(aes(colour = bmicat), method = "lm", se = FALSE, linewidth = 2) +
+  scale_colour_manual(values = c("#FAAB18", "#1380A1")) +
+  ThemePark::theme_barbie() +
+  labs(
+    title = "Child asthma's link to air quality worsens in overweight children",
+    subtitle = "Number of days with symptoms vs PM2.5 by weight group"
+  )
+
+## Oppenheimer-inspired theme
+g +
+  geom_smooth(aes(colour = bmicat), method = "lm", se = FALSE, linewidth = 2) +
+  scale_colour_manual(values = c("#FAAB18", "#1380A1")) +
+  ThemePark::theme_oppenheimer() +
+  labs(
+    title = "Child asthma's link to air quality worsens in overweight children",
+    subtitle = "Number of days with symptoms vs PM2.5 by weight group"
+  )
+
+
+## Install ggthemes from CRAN
+  ## install.packages("ggthemes")
+
+## Your favorite statistics class theme ;)
+## I bet that you could fool a few people into thinking
+## that you are not using R ^_^'-- MAKES STATA LOOKING CHART
+g +
+  geom_smooth(aes(colour = bmicat), method = "lm", se = FALSE, linewidth = 2) +
+  scale_colour_manual(values = c("#FAAB18", "#1380A1")) +
+  ggthemes::theme_stata() +
+  labs(
+    title = "Child asthma's link to air quality worsens in overweight children",
+    subtitle = "Number of days with symptoms vs PM2.5 by weight group"
+  )
+
+
+## Save our plot into an object
+g_complete <- g +
+  geom_point(aes(colour = bmicat)) +
+  geom_smooth(aes(colour = bmicat), method = "lm", se = FALSE, linewidth = 2) +
+  scale_colour_manual(values = c("#FAAB18", "#1380A1"))
+
+## Make it interactive with plotly::ggplotly()
+library("plotly")
+plotly::ggplotly((g_complete))
+
+## Install colorblindr from GitHub
+  ## remotes::install_github("clauswilke/colorblindr")
+
+
+## Check how grid will look to people with colorblindness
+colorblindr::cvd_grid(g_complete)
+
+
+## Create cutpoints
+cutpoints <- quantile(maacs$logno2_new, seq(0, 1, length = 4), na.rm = TRUE)
+
+## create cutpoints and check levels
+maacs$no2tert <- cut(maacs$logno2_new, cutpoints)
+levels(maacs$no2tert)
+
+## Setup ggplot with data frame
+g <- maacs %>%
+  ggplot(aes(logpm25, NocturnalSympt))
+
+## Add layers
+g + geom_point(alpha = 1 / 3) +
+  facet_grid(bmicat ~ no2tert) +
+  geom_smooth(method = "lm", se = FALSE, col = "steelblue") +
+  theme_bw(base_family = "Avenir", base_size = 10) +
+  labs(x = expression("log " * PM[2.5])) +
+  labs(y = "Nocturnal Symptoms") +
+  labs(title = "MAACS Cohort")
 
 
 
