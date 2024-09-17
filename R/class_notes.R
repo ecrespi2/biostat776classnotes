@@ -656,3 +656,209 @@ g + geom_point(alpha = 1 / 3) +
 
 
 
+#################################################
+##### CLASS NOTES: LECTURE 12 - R nuts and bolts
+##################################################
+
+
+## Assign 5 to vector x and print
+x <- 5        ## nothing printed
+x             ## auto-printing occurs
+print(x)      ## explicit printing
+  # The [1] shown in the output indicates that x is a vector and 5 is its first element.
+  # Typically with interactive work, we do not explicitly print objects with the print() function;
+  # it is much easier to just auto-print them by typing the name of the object and hitting return/enter.
+  # However, when writing scripts, functions, or longer programs, there is sometimes
+  #a need to explicitly print objects because auto-printing does not work in those settings.
+
+
+## Assign "hello" to vector msg
+msg <- "hello"
+
+
+## Assign numbers 11 through 30 to vector msg and autoprint
+x <- 11:30
+x
+
+## Print numbers 5-0 and -15-15
+5:0
+-15:15
+
+## Use vector function to create vectors (less common)
+vector(mode = "numeric", length = 4)     ## makes numeric vector with all 0's
+vector(mode = "logical", length = 4)     ## makes logical vector with all FALSE
+vector(mode = "character", length = 4)   ## makes character vector with all ""
+
+
+## Use c() function to create vectors (more common)
+x <- c(0.5, 0.6)       ## numeric
+x <- c(TRUE, FALSE)    ## logical
+x <- c(T, F)           ## logical
+x <- c("a", "b", "c")  ## character
+x <- 9:29              ## integer
+x <- c(1+0i, 2+4i)     ## complex
+
+
+## Check type of 4 and 4L
+typeof(4)    ## double
+typeof(4L)   ## integer
+
+## Calculations
+x <- sqrt(2) ^ 2
+x
+
+## Get letters and check type
+letters            ## a-z
+typeof(letters)    ## character
+
+## Get 1:10 and check type
+1:10            ## 1-10
+typeof(1:10)    ## integer
+
+
+## Store a list with a, b, and 1:10
+x <- list("a", "b", 1:10)
+x
+length(x)           ## check length of x -- 3  (a, b, 1:10)
+typeof(x)           ## check type of x -- list
+attributes(x)       ## check attributes of x -- NULL
+  # Lists (unlike vectors) don't have to be homogenous, which can be useful
+x[1]
+x[2]
+x[3]
+
+## Create and print several vectors; vectors have to be all the same type
+y <- c(1.7, "a")       ## R 'coerces' data so both are characters
+y
+typeof(y)
+y <- c(TRUE, 2)        ## R 'coerces' data so both are double
+y
+typeof(y)
+y <- c("a", TRUE)      ## R 'coerces' data so both are characters
+y
+typeof(y)
+
+## Explicit coercion
+x <- 0:6
+class(x)           ## vector is integer
+as.numeric(x)      ## make vector numeric
+as.logical(x)      ## make vector logical
+as.character(x)    ## make vector character
+
+x <- c("a", "b", "c")
+as.numeric(x)     ## make vector numeric - generates NAs
+as.logical(x)     ## make vector numeric - still NAs
+
+
+## Create empty matrix with 2 rows and 3 columns
+m <- matrix(nrow = 2, ncol = 3)
+m
+dim(m)            ## check matrix dimension (row, column)
+attributes(m)     ## check matrix attributes (row, column)
+
+## Create matrix with 2 rows and 3 columns, 1-6
+m <- matrix(1:6, nrow = 2, ncol = 3)
+m
+dim(m)            ## check matrix dimension (row, column)
+attributes(m)     ## check matrix attributes (row, column)
+
+## Create matrix with numbers 1-10, auto makes
+m <- 1:10     ## makes it a 1x10
+m
+dim(m) <- c(2, 5)    ## makes it a 2x5
+m
+
+
+## Make two vectors and combine into a matrix (have to be same type)
+x <- 1:3
+y <- 10:12
+cbind(x, y)   ## makes two columns, 1-3 and 10-12
+rbind(x, y)   ## makes two rows, 1-3 and 10-12
+
+## Make another list
+x <- list(1, "a", TRUE, 1 + 4i)
+x
+
+## Make a vector with five empty lists
+x <- vector("list", length = 5)
+x
+
+
+## Make a factor which allows underlying numeric coding with labels
+x <- factor(c("yes", "yes", "no", "yes", "no"))
+x
+table(x)
+unclass(x)    ## See the underlying representation of factor
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- factor(c("yes", "yes", "no", "yes", "no"))
+x  ## Levels are put in alphabetical order
+x <- factor(c("yes", "yes", "no", "yes", "no"),
+            levels = c("yes", "no"))
+x
+
+## Create a vector with NAs in it
+x <- c(1, 2, NA, 10, 3)
+is.na(x)         ## Return a logical vector indicating which elements are NA
+is.nan(x)        ## Return a logical vector indicating which elements are NaN
+
+## Now create a vector with both NA and NaN values
+x <- c(1, 2, NaN, NA, 4)
+is.na(x)
+is.nan(x)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- data.frame(foo = 1:4, bar = c(T, T, F, F))
+x
+nrow(x)
+ncol(x)
+attributes(x)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+data.matrix(x)
+attributes(data.matrix(x))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| message: false
+# try it yourself
+
+library(tidyverse)
+library(palmerpenguins)
+penguins
+
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- 1:3
+names(x)
+names(x) <- c("New York", "Seattle", "Los Angeles")
+x
+names(x)
+attributes(x)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- list("Los Angeles" = 1, Boston = 2, London = 3)
+x
+names(x)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+m <- matrix(1:4, nrow = 2, ncol = 2)
+dimnames(m) <- list(c("a", "b"), c("c", "d"))
+m
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+colnames(m) <- c("h", "f")
+rownames(m) <- c("x", "z")
+m
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+options(width = 120)
+sessioninfo::session_info()
+
