@@ -394,7 +394,7 @@ right_join(x = outcomes, y = subjects, by = c("id", "visit"))
 
 
 #################################################
-##### CLASS NOTES: LECTURE 11 - ggplot
+##### CLASS NOTES: LECTURE 13 - ggplot
 ##################################################
 ## Recommended books:
   # ggplot2: Elegant Graphics for Data Analysis (3e) https://ggplot2-book.org/
@@ -657,7 +657,7 @@ g + geom_point(alpha = 1 / 3) +
 
 
 #################################################
-##### CLASS NOTES: LECTURE 12 - R nuts and bolts
+##### CLASS NOTES: LECTURE 14 - R nuts and bolts
 ##################################################
 
 
@@ -808,30 +808,24 @@ is.na(x)
 is.nan(x)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Make data frame with varnames foo and bar
 x <- data.frame(foo = 1:4, bar = c(T, T, F, F))
 x
 nrow(x)
 ncol(x)
 attributes(x)
 
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Convert data frame to matrix
 data.matrix(x)
 attributes(data.matrix(x))
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| message: false
-# try it yourself
-
+## Load packages
 library(tidyverse)
 library(palmerpenguins)
 penguins
 
-
-
-## ------------------------------------------------------------------------------------------------------------------------
+## make vector 1:3 and then add names to vector
 x <- 1:3
 names(x)
 names(x) <- c("New York", "Seattle", "Los Angeles")
@@ -840,25 +834,424 @@ names(x)
 attributes(x)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Make list of numbers 1:3 with names
 x <- list("Los Angeles" = 1, Boston = 2, London = 3)
 x
 names(x)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Make 2x2 matrix with numbers 1-4, add row and column names
 m <- matrix(1:4, nrow = 2, ncol = 2)
+m
 dimnames(m) <- list(c("a", "b"), c("c", "d"))
 m
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Change row and column names for matrix
 colnames(m) <- c("h", "f")
 rownames(m) <- c("x", "z")
 m
+
+##################################################
+##### CLASS NOTES: LECTURE 15 - Control Structures
+##################################################
+
+## Draw random value between min and max
+x <- runif(n = 1, min = 0, max = 10)
+x
+
+
+## check if x > 3
+x > 3
+
+
+## If x> 3, first condition occurs. Else, second condition occurs.
+
+if (x > 3) {
+  y <- 10
+} else {
+  y <- 0
+}
+
+y
+
+## Different but equivalent way of doing if else
+y <- if (x > 3) {
+  10
+} else {
+  0
+}
+
+y
+
+## Load packages
+library(tidyverse)
+library(palmerpenguins)
+penguins
+
+## Print numbers 1-10
+for (i in 1:10) {
+  print(i)
+}
+
+for (i in 1:10) {
+  i
+}
+
+
+## Define a loop to iterate over and print each element
+x <- c("a", "b", "c", "d")
+
+for (i in 1:4) {
+  ## Print out each element of 'x'
+  print(x[i])
+}
+
+## seq_along generates integer sequence based on length of object
+x
+seq_along(x)
+
+## Generate a sequence based on length of 'x'
+for (i in seq_along(x)) {
+  print(x[i])
+}
+
+
+## Can name i anything
+for (babyshark in x) {
+  print(babyshark)
+}
+
+## Can't use numbers though
+  # for (1999 in x) {
+  #  print(1999)
+  # }
+
+
+## Technically don't need curly braces, but use them anyway for simplicity!
+for (i in 1:4) print(x[i])
+
+## Create 2x3 matrix with numbers 1-6
+x <- matrix(1:6, nrow = 2, ncol = 3)
+x
+
+## Create nested for loop: does something for every row and then every column in row
+for (i in seq_len(nrow(x))) {
+  for (j in seq_len(ncol(x))) {
+    print(x[i, j])
+  }
+}
+
+  # lots of loops can be confusing
+  # can break them up with functions if desired
+
+## While is rarely used;
+  # specify value outside loop
+  # have condition that uses that value
+  # update something based on that
+
+count <- 0
+while (count < 10) {
+  print(count)
+  count <- count + 1
+}
+
+
+## More complicated while loop
+z <- 5
+set.seed(1)
+
+while (z >= 3 && z <= 10) {
+  coin <- rbinom(1, 1, 0.5)
+
+  if (coin == 1) { ## random walk
+    z <- z + 1
+  } else {
+    z <- z - 1
+  }
+}
+print(z)
+
+
+## Difference between one & and two &&
+-2:2
+((-2:2) >= 0) & ((-2:2) <= 0)
+
+(2 >= 0) && (-2 <= 0)
+(-2 >= 0) && (-2 <= 0)
+
+
+## Repeat loops
+  # Be careful as can create never ending loop
+  #| eval: false
+  ## x0 <- 1
+  ## tol <- 1e-8
+  ##
+  ## repeat {
+  ##     x1 <- computeEstimate()
+  ##
+  ##     if (abs(x1 - x0) < tol) { ## Close enough?
+  ##         break
+  ##     } else {
+  ##         x0 <- x1
+  ##     }
+  ## }
+
+
+## Using next in loops
+  ## for (i in 1:100) {
+  ##     if (i <= 20) {
+  ##         ## Skip the first 20 iterations
+  ##         next
+  ##     }
+  ##     ## Do something here
+  ## }
+
+
+## Using break in loops
+  ## for (i in 1:100) {
+  ##     print(i)
+  ##
+  ##     if (i > 20) {
+  ##         ## Stop loop after 20 iterations
+  ##         break
+  ##     }
+  ## }
+
+
+
+##################################################
+##### CLASS NOTES: LECTURE 16 - Functions
+##################################################
+## Create empty function and check class
+f <- function() {
+  ## This is an empty function
+}
+
+class(f)
+f()
+
+
+## Create function that prints "Hello world!"
+f <- function() {
+  # this is the function body
+  hello <- "Hello, world!\n"
+  cat(hello)
+}
+f()
+
+
+## cat() is sometimes prefereable to print()
+  # It doesn't output new lines
+hello <- "Hello, world!\n"
+print(hello)
+cat(hello)
+
+
+## Create function that prints Hello World the number of times specified
+f <- function(num) {
+  for (i in seq_len(num)) {
+    hello <- "Hello, world!\n"
+    cat(hello)
+  }
+}
+f(3)
+
+
+## Create function that prints Hellow world specified number of times and prints number of letters in all "hello"
+f <- function(num) {
+  hello <- "Hello, world!\n"
+  for (i in seq_len(num)) {
+    cat(hello)
+  }
+  chars <- nchar(hello) * num
+  chars
+}
+meaningoflife <- f(3)
+print(meaningoflife)
+
+## Make same function but set default to 1 so if they don't enter anything you dont get an error message
+f <- function(num = 1) {
+  hello <- "Hello, world!\n"
+  for (i in seq_len(num)) {
+    cat(hello)
+  }
+  chars <- nchar(hello) * num
+  chars
+}
+
+f() ## Use default value for 'num'
+f(2) ## Use user-specified value
+
+
+## Returns list of all formal arguments of a function
+formals(f)
+
+
+## Can specify function argument name if desired
+f(num = 2)
+
+
+## Figure out what arguments are in rnorm function & the order
+str(rnorm)
+mydata <- rnorm(100, 2, 1) ## Generate some data
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## Positional match first argument, default for 'na.rm'
+sd(mydata)
+## Specify 'x' argument by name, default for 'na.rm'
+sd(x = mydata)
+## Specify both arguments by name
+sd(x = mydata, na.rm = FALSE)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## Specify both arguments by name
+sd(na.rm = FALSE, x = mydata)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+sd(na.rm = FALSE, mydata)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+args(f)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+args(lm)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+f <- function(a, b) {
+  a^2
+}
+f(2)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+f <- function(a, b) {
+  print(a)
+  print(b)
+}
+f(45)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+mean
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+paste("one", "two", "three")
+paste("one", "two", "three", "four", "five", sep = "_")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+args(paste)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+args(paste)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+paste("a", "b", sep = ":")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+paste("a", "b", se = ":")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## # Too short
+## f()
+##
+## # Not a verb, or descriptive
+## my_awesome_function()
+##
+## # Long, but clear
+## impute_missing()
+## collapse_years()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+# Never do this!
+col_mins <- function(x, y) {}
+rowMaxes <- function(x, y) {}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## # Good
+## input_select()
+## input_checkbox()
+## input_text()
+##
+## # Not so good
+## select_input()
+## checkbox_input()
+## text_input()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## # Don't do this!
+## T <- FALSE
+## c <- 10
+## mean <- function(x) sum(x)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+f <- function(x) {
+  x + y
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+y <- 100
+f(10)
+
+y <- 1000
+f(10)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+`+` <- function(x, y) {
+  if (runif(1) < 0.1) {
+    sum(x, y)
+  } else {
+    sum(x, y) * 1.1
+  }
+}
+table(replicate(1000, 1 + 2))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+rm(`+`)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## mean(is.na(x))
+##
+## x / sum(x, na.rm = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## ------------------------------------------------------------------------------------------------------------------------
 options(width = 120)
 sessioninfo::session_info()
-
