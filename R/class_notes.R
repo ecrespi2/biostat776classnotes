@@ -1097,41 +1097,31 @@ str(rnorm)
 mydata <- rnorm(100, 2, 1) ## Generate some data
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-## Positional match first argument, default for 'na.rm'
-sd(mydata)
-## Specify 'x' argument by name, default for 'na.rm'
-sd(x = mydata)
-## Specify both arguments by name
-sd(x = mydata, na.rm = FALSE)
+## Play with SD function
+sd(mydata)                    ## Positional match first argument, default for 'na.rm'
+sd(x = mydata)                ## Specify 'x' argument by name, default for 'na.rm'
+sd(x = mydata, na.rm = FALSE) ## Specify both arguments by name
+sd(na.rm = FALSE, x = mydata) ## Can change position if you specify argument name
+sd(na.rm = FALSE, mydata)     ## Can mix specifying arguments and not
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-## Specify both arguments by name
-sd(na.rm = FALSE, x = mydata)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
-sd(na.rm = FALSE, mydata)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Check arguments in function f
 args(f)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Check arguments in function lm
 args(lm)
+lm(data = mydata, y ~ x, model = FALSE, 1:100)
+lm(y ~ x, mydata, 1:100, model = FALSE)
 
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Create function which returns square of first argument
 f <- function(a, b) {
   a^2
 }
 f(2)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
+## Error because no function
 f <- function(a, b) {
   print(a)
   print(b)
@@ -1139,78 +1129,53 @@ f <- function(a, b) {
 f(45)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Try to call mean function without argument
 mean
 
+## Paste function combines strings
+args(paste)
 
-## ------------------------------------------------------------------------------------------------------------------------
 paste("one", "two", "three")
 paste("one", "two", "three", "four", "five", sep = "_")
-
-
-## ------------------------------------------------------------------------------------------------------------------------
-args(paste)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
-args(paste)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
 paste("a", "b", sep = ":")
-
-
-## ------------------------------------------------------------------------------------------------------------------------
 paste("a", "b", se = ":")
 
+## Examples of function names
+    # f()
+        # Too short
+    # my_awesome_function()
+       # Not a verb, or descriptive
+    ## impute_missing()
+      # Long, but clear
+    ## collapse_years()
+      # Long, but clear
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| eval: false
-## # Too short
-## f()
-##
-## # Not a verb, or descriptive
-## my_awesome_function()
-##
-## # Long, but clear
-## impute_missing()
-## collapse_years()
-
-
-## ------------------------------------------------------------------------------------------------------------------------
-# Never do this!
+## snake_case vs camelCase -- PICK ONE AND STICK WITH IT
 col_mins <- function(x, y) {}
-rowMaxes <- function(x, y) {}
+rowMaxes <- function(x, y) {}   # DO NOT MIX CASES
+
+## Good function names - help with autocompletion
+  # input_select()
+  # input_checkbox()
+  # input_text()
+
+## Not so good function names
+  # select_input()
+  # checkbox_input()
+  # text_input()
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| eval: false
-## # Good
-## input_select()
-## input_checkbox()
-## input_text()
-##
-## # Not so good
-## select_input()
-## checkbox_input()
-## text_input()
+# Don't do this! -- Avoid overriding existing functions
+  # T <- FALSE
+  # c <- 10
+  # mean <- function(x) sum(x)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| eval: false
-## # Don't do this!
-## T <- FALSE
-## c <- 10
-## mean <- function(x) sum(x)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Uses y set from outside function, keep this in mind!
 f <- function(x) {
   x + y
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
 y <- 100
 f(10)
 
@@ -1218,7 +1183,7 @@ y <- 1000
 f(10)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## IDK what this is doing
 `+` <- function(x, y) {
   if (runif(1) < 0.1) {
     sum(x, y)
@@ -1229,7 +1194,7 @@ f(10)
 table(replicate(1000, 1 + 2))
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Remove `+` function
 rm(`+`)
 
 
@@ -1242,14 +1207,725 @@ rm(`+`)
 
 
 
+##################################################
+##### CLASS NOTES: LECTURE 17 - Vectorization and loop functionals
+##################################################
+
+## Create vector inches with specific numbers
+inches <- c(69, 62, 66, 70, 70, 73, 67, 73, 67, 70)
+
+
+## Print vector inches * 2.54
+inches * 2.54
+
+
+## Print vector inches - 69
+inches - 69
+
+
+## Create vectors x and y 1-10 and add (x + y = 121)
+x <- 1:10
+y <- 1:10
+x + y
+
+## Print sqrt of vector x
+sqrt(x)
+
+## Print vector x*y
+x * y
+
+
+## In a lot of other languages, we would have to do:
+  ## Check that x and y have the same length
+  stopifnot(length(x) == length(y))
+
+  ## Create our result object
+  result <- vector(mode = "integer", length = length(x))
+
+  ## Loop through each element of x and y, calculate the sum,
+
+  ## then store it on 'result'
+  for (i in seq_along(x)) {
+    result[i] <- x[i] + y[i]
+  }
+  ## Check that we got the same answer
+  identical(result, x + y)
+
+
+## Create sum function
+my_sum <- function(a, b) {
+  a + b
+}
+my_sum (4, 100)
+
+
+## Same but with an extra check to make sure that 'a' and 'b'
+## have the same lengths.
+my_sum <- function(a, b) {
+  ## Check that a and b are of the same length
+  stopifnot(length(a) == length(b))
+  a + b
+}
+
+my_sum(c(1, 3, 4), c(1, 4, 5))
+my_sum(c(1, 3, 4), c(1, 4))
+
+## Documenting function with roxygen2 syntax
+#' Title
+#'
+#' @param a
+#' @param b
+#'
+#' @return
+#' @export
+#'
+#' @examples
+my_sum <- function(a, b) {
+  ## Check that a and b are of the same length
+  stopifnot(length(a) == length(b))
+  a + b
+}
+
+
+## Documenting function with roxygen2 syntax
+#' Title
+#'
+#' Description
+#'
+#' Details
+#'
+#' @param a What is `a`?
+#' @param b What is `b`?
+#'
+#' @return What does the function return?
+#' @export ## Do we want to share this function? yes!
+#'
+#' @examples
+#' ## How do you use this function?
+my_sum <- function(a, b) {
+  ## Check that a and b are of the same length
+  stopifnot(length(a) == length(b))
+  a + b
+}
+
+
+## Documenting function with roxygen2 syntax
+#' Sum two vectors
+#'
+#' This function does the element wise sum of two vectors.
+#'
+#' It really is just an example function that is powered by the `+` operator
+#' from [base::Arithmetic].
+#'
+#' @param a An `integer()` or `numeric()` vector of length `L`.
+#' @param b An `integer()` or `numeric()` vector of length `L`.
+#'
+#' @return An `integer()` or `numeric()` vector of length `L` with
+#' the element-wise sum of `a` and `b`.
+#' @export
+#'
+#' @examples
+#' ## Generate some input data
+#' x <- 1:10
+#' y <- 1:10
+#'
+#' ## Perform the element wise sum
+#' my_sum(x, y)
+my_sum <- function(a, b) {
+  ## Check that a and b are of the same length
+  stopifnot(length(a) == length(b))
+  a + b
+}
+
+
+## CREATING PACKAGES
+library("testthat")
+test_that("my_sum works", {
+  x <- seq_len(10)
+  expect_equal(my_sum(x, x), x + x)
+
+  expect_error(my_sum(x, seq_len(5)))
+})
+
+
+## CREATING PACKAGES
+#| eval: false
+## ## Install biocthis if you don't have it
+## if (!require("BiocManager", quietly = TRUE)) {
+##     install.packages("BiocManager")
+## }
+##
+## BiocManager::install("biocthis")
+##
+## ## Create an empty R package that is also an
+## ## RStudio project
+## usethis::create_package("~/Desktop/sum776")
+##
+## ## On the new RStudio window, create the
+## ## scripts that will guide you into making a package
+## biocthis::use_bioc_pkg_templates()
+
+
+## CREATING PACKAGES
+remotes::install_github("lcolladotor/sum776")
+
+
+## MAPPLY()
+## Check the arguments to mapply()
+args(mapply)
+
+## Apply mapply() to our function my_sum() with the inputs 'x' and 'y'
+mapply(sum776::my_sum, x, y)
+
+## Or write an anynymous function that is:
+## * not documented
+## * not tested
+## * not shared
+##
+## :(
+mapply(function(a, b) {
+  a + b
+}, x, y)
+
+
+## purr (alternative to mapply)
+library("purrr") ## part of tidyverse
+
+## Check the arguments of map2_int()
+args(purrr::map2_int)
+
+## Apply our function my_sum() to our inputs
+purrr::map2_int(x, y, sum776::my_sum)
+
+## You can also use anonymous functions
+purrr::map2_int(x, y, function(a, b) {
+  a + b
+})
+
+## purrr even has a super short formula-like syntax
+## where .x is the first input and .y is the second one
+purrr::map2_int(x, y, ~ .x + .y)
+
+## This formula syntax has nothing to do with the objects 'x' and 'y'
+purrr::map2_int(1:2, 3:4, ~ .x + .y)
+
+
+## lapply (another alternative but only uses lists)
+lapply
+x <- list(a = 1:5, b = rnorm(10))
+x
+lapply(x, mean) ##return mean of each list in list x
+
+
+## purr returns dbl
+purrr::map_dbl(x, mean)
+
+## Return mean of each list in list x
+x <- list(a = 1:4, b = rnorm(10), c = rnorm(20, 1), d = rnorm(100, 5))
+lapply(x, mean)
+
+
+## For each in x, return list???
+x <- 1:4
+lapply(x, runif)
+
+
+## ??
+purrr::map(x, runif)
+
+
+## Can specify addition arguments in function after function
+x <- 1:4
+lapply(x, runif, min = 0, max = 10)
+purrr::map(x, runif, min = 0, max = 10)
+
+
+## Create list of matrices
+x <- list(a = matrix(1:4, 2, 2), b = matrix(1:6, 3, 2))
+x
+apply(x, function(elt) {
+  elt[, 1]
+})
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+f <- function(elt) {
+  elt[, 1]
+}
+lapply(x, f)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- list(a = 1:4, b = rnorm(10), c = rnorm(20, 1), d = rnorm(100, 5))
+lapply(x, mean)
+
+
+## sapply is simplified version of lapply
+sapply(x, mean)
+purrr::map(x, mean)
+purrr::map_dbl(x, mean)
+
+
+## split() takes vector or other object and splits it into groups
+str(split)
+
+x <- c(rnorm(10), runif(10), rnorm(10, 1))
+f <- gl(3, 10) # generate factor levels
+f
+split(x, f) ## get list with name of each element = factor levels, and values x
+
+
+## Get list with name of each element = factor levels, and values mean(x)
+lapply(split(x, f), mean)
+
+
+## Load dataset
+library("datasets")
+head(airquality)
+
+
+## Split data frame by month; creates list where each element is named as month and contains a dataframe
+s <- split(airquality, airquality$Month)
+str(s)
+
+
+## Get column means for Ozone, Solar.R and Wind in list s
+lapply(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")])
+})
+
+
+## Get column means for Ozone, Solar.R and Wind in list s
+sapply(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")])
+})
+
+
+## Get column means for Ozone, Solar.R and Wind in list s, exclude NA
+sapply(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")],
+           na.rm = TRUE
+  )
+})
+
+
+## Get column means for Ozone, Solar.R and Wind in list s
+purrr::map(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)
+})
+
+
+## Get column means for Ozone, Solar.R and Wind in list s
+purrr::map_dfc(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)
+})
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## Make sure we get data.frame / tibble outputs for each element
+## of the list
+purrr:::map(s, function(x) {
+  tibble::as_tibble(colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE))
+})
+
+## Now we can combine them with list_cbind()
+purrr:::map(s, function(x) {
+  tibble::as_tibble(colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE))
+}) %>% purrr::list_cbind()
+
+## And we can then add the actual variable it came from with mutate()
+purrr:::map(s, function(x) {
+  tibble::as_tibble(colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE))
+}) %>%
+  purrr::list_cbind() %>%
+  dplyr::mutate(Variable = c("Ozone", "Solar.R", "Wind"))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## Sadly map_dfr() is now superseded (aka not recommended)
+purrr:::map_dfr(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)
+})
+
+## This is how we would have added back the Month variable
+purrr:::map_dfr(s, function(x) {
+  colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)
+}) %>%
+  dplyr:::mutate(Month = as.integer(names(s)))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## Get data.frame / tibble outputs, but with each variable as a separate
+## column. Here we used the t() or transpose() function.
+purrr:::map(s, function(x) {
+  tibble::as_tibble(t(colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)))
+})
+
+## Now we can row bind each of these data.frames / tibbles into a
+## single one
+purrr:::map(s, function(x) {
+  tibble::as_tibble(t(colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)))
+}) %>% purrr::list_rbind()
+
+## Then with mutate, we can add the Month back
+purrr:::map(s, function(x) {
+  tibble::as_tibble(t(colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)))
+}) %>%
+  purrr::list_rbind() %>%
+  dplyr:::mutate(Month = as.integer(names(s)))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## group_by() is in a way splitting our input data.frame / tibble by
+## our variable of interest. Then summarize() helps us specify how we
+## want to use that data, before it's all put back together into a
+## tidy tibble.
+airquality %>%
+  dplyr::group_by(Month) %>%
+  dplyr::summarize(
+    Ozone = mean(Ozone, na.rm = TRUE),
+    Solar.R = mean(Solar.R, na.rm = TRUE),
+    Wind = mean(Wind, na.rm = TRUE)
+  )
+
+
+## str(tapply): apply a function over subsets of a vector
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+## Simulate some data
+x <- c(rnorm(10), runif(10), rnorm(10, 1))
+## Define some groups with a factor variable
+f <- gl(3, 10)
+f
+tapply(x, f, mean)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+tapply(x, f, range)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+split(x, f) %>% purrr::map_dbl(mean)
+split(x, f) %>% purrr::map(range)
+
+
+## str(tapply): apply a function over the margins of an array
+str(apply)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- matrix(rnorm(200), 20, 10)
+head(x)
+apply(x, 2, mean) ## Take the mean of each column
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+apply(x, 1, sum) ## Take the mean of each row
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## apply(x, 2, mean)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## apply(x, 1, sum)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+array_branch(x, 2) %>% map_dbl(mean)
+array_branch(x, 1) %>% map_dbl(sum)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- matrix(rnorm(200), 20, 10)
+head(x)
+
+## Get row quantiles
+apply(x, 1, quantile, probs = c(0.25, 0.75))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+array_branch(x, 1) %>%
+  map(quantile, probs = c(0.25, 0.75)) %>%
+  map(~ as.data.frame(t(.x))) %>%
+  list_rbind()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+sumsq <- function(mu, sigma, x) {
+  sum(((x - mu) / sigma)^2)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+x <- rnorm(100) ## Generate some data
+sumsq(mu = 1, sigma = 1, x) ## This works (returns one value)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+sumsq(1:10, 1:10, x) ## This is not what we want
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+vsumsq <- Vectorize(sumsq, c("mu", "sigma"))
+vsumsq(1:10, 1:10, x)
+
+## The details are a bit complicated though
+## as we can see below
+vsumsq
 
 
 
+#################################################
+##### CLASS NOTES: LECTURE 18 - Debugging R Code
+##################################################
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## remotes::install_github("jalvesaq/colorout")
 
 
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+
+## ## Open your .Rprofile file
+## usethis::edit_r_profile()
+##
+## ## Copy paste the following code taken from
+## ## https://lcolladotor.github.io/bioc_team_ds/config-files.html#rprofile
+##
+## ## Change colors
+## # Source https://github.com/jalvesaq/colorout
+## if (Sys.getenv("TERM") %in% c("term", "xterm-256color", "cygwin", "screen")) {
+##     if (!requireNamespace("colorout", quietly = TRUE) & .Platform$OS.type != "windows") {
+##         cat('To install colorout use: remotes::install_github("jalvesaq/colorout")\n')
+##     }
+## }
 
 
+## ------------------------------------------------------------------------------------------------------------------------
+#| warning: true
+#| error: true
+require("colorout")
 
+## From colorout's README documentation
+x <- data.frame(
+  logic = c(TRUE, TRUE, FALSE),
+  factor = factor(c("abc", "def", "ghi")),
+  string = c("ABC", "DEF", "GHI"),
+  real = c(1.23, -4.56, 7.89),
+  cien.not = c(1.234e-23, -4.56 + 45, 7.89e78),
+  date = as.Date(c("2012-02-21", "2013-02-12", "2014-03-04"))
+)
+rownames(x) <- seq_len(3)
+x
+
+summary(x[, c(1, 2, 4, 6)])
+
+warning("This is an example of a warning.")
+
+example.of.error
+
+library("KernSmooth")
+
+colorout::setOutputColors()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+library("reprex")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## (y <- 1:4)
+## mean(y)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| warning: true
+log(-1)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message <- function(x) {
+  if (x > 0) {
+    print("x is greater than zero")
+  } else {
+    print("x is less than or equal to zero")
+  }
+  invisible(x)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+print_message(1)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+print_message(NA)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message2 <- function(x) {
+  if (is.na(x)) {
+    print("x is a missing value!")
+  } else if (x > 0) {
+    print("x is greater than zero")
+  } else {
+    print("x is less than or equal to zero")
+  }
+  invisible(x)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message2(NA)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+x <- log(c(-1, 2))
+print_message2(x)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message3 <- function(x) {
+  if (length(x) > 1L) {
+    stop("'x' has length > 1")
+  }
+  if (is.na(x)) {
+    print("x is a missing value!")
+  } else if (x > 0) {
+    print("x is greater than zero")
+  } else {
+    print("x is less than or equal to zero")
+  }
+  invisible(x)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+print_message3(1:2)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message3_no_call <- function(x) {
+  if (length(x) > 1L) {
+    stop("'x' has length > 1", call. = FALSE)
+  }
+  if (is.na(x)) {
+    print("x is a missing value!")
+  } else if (x > 0) {
+    print("x is greater than zero")
+  } else {
+    print("x is less than or equal to zero")
+  }
+  invisible(x)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+print_message3_no_call(99:100)
+print_message3(99:100)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message3_tidyverse <- function(x) {
+  if (length(x) > 1L) {
+    rlang::abort("'x' has length > 1")
+  }
+  if (is.na(x)) {
+    rlang::warn("x is a missing value!")
+  } else if (x > 0) {
+    rlang::inform("x is greater than zero")
+  } else {
+    rlang::inform("x is less than or equal to zero")
+  }
+  invisible(x)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+print_message3_tidyverse(99:100)
+print_message3_tidyverse(NA)
+print_message3_tidyverse(1)
+print_message3_tidyverse(-1)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message3_cli <- function(x) {
+  if (length(x) > 1L) {
+    len <- length(x)
+
+    ## Avoid the print() calls from
+    ## https://github.com/ComunidadBioInfo/praiseMX/blob/master/R/praise_crear_emi.R
+    praise_mx_log <- capture.output({
+      praise_mx <- praiseMX:::praise_bien()
+    })
+    cli::cli_abort(
+      c(
+        "This function is not vectorized:",
+        "i" = "{.var x} has length {len}.",
+        "x" = "{.var x} must have length 1.",
+        ">" = "Try using {.code purrr::map(x, print_message3_cli)} to loop your input {.var x} on this function.",
+        "v" = praise::praise(),
+        "v" = praise_mx
+      )
+    )
+  }
+  if (is.na(x)) {
+    rlang::warn("x is a missing value!")
+  } else if (x > 0) {
+    rlang::inform("x is greater than zero")
+  } else {
+    rlang::inform("x is less than or equal to zero")
+  }
+  invisible(x)
+}
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+set.seed(20230928)
+print_message3_cli(-1:1)
+purrr::map(-1:1, print_message3_cli)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+print_message4 <- Vectorize(print_message2)
+out <- print_message4(c(-1, 2))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+lm(y ~ x)
+rlang::last_error()
+
+
+## ----error=TRUE----------------------------------------------------------------------------------------------------------
+f <- function(a) g(a)
+g <- function(b) h(b)
+h <- function(c) i(c)
+i <- function(d) {
+  if (!is.numeric(d)) {
+    stop("`d` must be numeric", call. = FALSE)
+  }
+  d + 10
+}
+f("a")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+options(width = 120)
+sessioninfo::session_info()
 
 
 ## ------------------------------------------------------------------------------------------------------------------------
