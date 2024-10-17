@@ -1654,64 +1654,52 @@ array_branch(x, 1) %>%
   list_rbind()
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Create function to compute sum of squares
 sumsq <- function(mu, sigma, x) {
   sum(((x - mu) / sigma)^2)
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
 x <- rnorm(100) ## Generate some data
 sumsq(mu = 1, sigma = 1, x) ## This works (returns one value)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Cannot use vectors for mu or sigma with our current function
 sumsq(1:10, 1:10, x) ## This is not what we want
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-vsumsq <- Vectorize(sumsq, c("mu", "sigma"))
+## Create function for vectorized sum of squares
+vsumsq <- Vectorize(sumsq, c("mu", "sigma")) ## Vectorize automatically creates vectorized version of your function
 vsumsq(1:10, 1:10, x)
 
-## The details are a bit complicated though
-## as we can see below
+## The details are a bit complicated though, as we can see below
 vsumsq
 
-
+## Parallelize your functions using furrr
 
 #################################################
 ##### CLASS NOTES: LECTURE 18 - Debugging R Code
 ##################################################
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| eval: false
-## remotes::install_github("jalvesaq/colorout")
+## Finding the root cause is challenging but one of the best packages is colorout -- changes colors of output to make clearer
+remotes::install_github("jalvesaq/colorout")
 
+## Make colorout load automatically when you open R
+  # Open your .Rprofile file
+  # usethis::edit_r_profile()
+  # Copy paste the following code taken from
+  # https://lcolladotor.github.io/bioc_team_ds/config-files.html#rprofile
+  # Change colors
+  # Source https://github.com/jalvesaq/colorout
+  # if (Sys.getenv("TERM") %in% c("term", "xterm-256color", "cygwin", "screen")) {
+  #     if (!requireNamespace("colorout", quietly = TRUE) & .Platform$OS.type != "windows") {
+  #         cat('To install colorout use: remotes::install_github("jalvesaq/colorout")\n')
+  #     }
+  # }
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| eval: false
-
-## ## Open your .Rprofile file
-## usethis::edit_r_profile()
-##
-## ## Copy paste the following code taken from
-## ## https://lcolladotor.github.io/bioc_team_ds/config-files.html#rprofile
-##
-## ## Change colors
-## # Source https://github.com/jalvesaq/colorout
-## if (Sys.getenv("TERM") %in% c("term", "xterm-256color", "cygwin", "screen")) {
-##     if (!requireNamespace("colorout", quietly = TRUE) & .Platform$OS.type != "windows") {
-##         cat('To install colorout use: remotes::install_github("jalvesaq/colorout")\n')
-##     }
-## }
-
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| warning: true
-#| error: true
-require("colorout")
+  # Note that you can also change the default colors for colorout
 
 ## From colorout's README documentation
+require("colorout")
 x <- data.frame(
   logic = c(TRUE, TRUE, FALSE),
   factor = factor(c("abc", "def", "ghi")),
@@ -1733,44 +1721,33 @@ library("KernSmooth")
 
 colorout::setOutputColors()
 
+## You can also Google erros when they happen
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Or you can use reprex
 library("reprex")
 
+(y <- 1:4)
+mean(y)
+  # And then enter reprex() in the R console and the issue has been copied to your clipboard; can post it on Github
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| eval: false
-## (y <- 1:4)
-## mean(y)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| warning: true
+## Produces warning message
 log(-1)
 
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Write function that prints message depending on input
 print_message <- function(x) {
   if (x > 0) {
     print("x is greater than zero")
   } else {
     print("x is less than or equal to zero")
   }
-  invisible(x)
+  invisible(x)  # Note:invisible return means value does not get auto-printed
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
-print_message(1)
+print_message(1)     ## "x is greater than zero"
+print_message(NA)    ## "Error in if (x > 0) { : missing value where TRUE/FALSE needed"
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
-print_message(NA)
-
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Edit function to handle NAs
 print_message2 <- function(x) {
   if (is.na(x)) {
     print("x is a missing value!")
@@ -1782,21 +1759,16 @@ print_message2 <- function(x) {
   invisible(x)
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
 print_message2(NA)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
+## Rework function for cases with longer inputs than expected
 x <- log(c(-1, 2))
 print_message2(x)
 
-
-## ------------------------------------------------------------------------------------------------------------------------
 print_message3 <- function(x) {
   if (length(x) > 1L) {
-    stop("'x' has length > 1")
+    stop("'x' has length > 1")    # stop creates an error message
   }
   if (is.na(x)) {
     print("x is a missing value!")
@@ -1808,16 +1780,13 @@ print_message3 <- function(x) {
   invisible(x)
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
 print_message3(1:2)
 
 
 ## ------------------------------------------------------------------------------------------------------------------------
 print_message3_no_call <- function(x) {
   if (length(x) > 1L) {
-    stop("'x' has length > 1", call. = FALSE)
+    stop("'x' has length > 1", call. = FALSE)  # Adding call. = FALSE creates shorter error message which has less information; might be better for googling when using custom functions
   }
   if (is.na(x)) {
     print("x is a missing value!")
@@ -1829,14 +1798,11 @@ print_message3_no_call <- function(x) {
   invisible(x)
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
 print_message3_no_call(99:100)
 print_message3(99:100)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Tidyverse has two functions that create error messages
 print_message3_tidyverse <- function(x) {
   if (length(x) > 1L) {
     rlang::abort("'x' has length > 1")
@@ -1851,16 +1817,13 @@ print_message3_tidyverse <- function(x) {
   invisible(x)
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
-print_message3_tidyverse(99:100)
-print_message3_tidyverse(NA)
-print_message3_tidyverse(1)
+print_message3_tidyverse(99:100)  # Abort changes how error displayed (i.e., stop)
+print_message3_tidyverse(NA)      # Warning prints in diff color (i.e., warning)
+print_message3_tidyverse(1)       # Inform prints message (i.e., message)
 print_message3_tidyverse(-1)
 
 
-## ------------------------------------------------------------------------------------------------------------------------
+## Cli can provide more detailed error messages
 print_message3_cli <- function(x) {
   if (length(x) > 1L) {
     len <- length(x)
@@ -1876,8 +1839,8 @@ print_message3_cli <- function(x) {
         "i" = "{.var x} has length {len}.",
         "x" = "{.var x} must have length 1.",
         ">" = "Try using {.code purrr::map(x, print_message3_cli)} to loop your input {.var x} on this function.",
-        "v" = praise::praise(),
-        "v" = praise_mx
+        "v" = praise::praise(),  #package gives people praise
+        "v" = praise_mx          #package gives people praise in spanish
       )
     )
   }
@@ -1891,24 +1854,28 @@ print_message3_cli <- function(x) {
   invisible(x)
 }
 
-
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
 set.seed(20230928)
 print_message3_cli(-1:1)
 purrr::map(-1:1, print_message3_cli)
 
-
-## ------------------------------------------------------------------------------------------------------------------------
+## Vectorize function
 print_message4 <- Vectorize(print_message2)
 out <- print_message4(c(-1, 2))
 
 
-## ------------------------------------------------------------------------------------------------------------------------
-#| error: true
+## Understanding where you are getting an error, on the user side rather than function builder
 lm(y ~ x)
-rlang::last_error()
+traceback()            # Shows how many layers deep you were when error occured
 
+rlang::global_entrace()  # Need global entrace first because lm doesnt use rlang internally
+lm(y~x)
+rlang::last_error()    # Gives additional information about error
+
+
+#? debug()
+#? recover()
+#? browser()
+#? trace()
 
 ## ----error=TRUE----------------------------------------------------------------------------------------------------------
 f <- function(a) g(a)
@@ -1923,9 +1890,1776 @@ i <- function(d) {
 f("a")
 
 
+
+#################################################
+##### CLASS NOTES: LECTURE 19 - Error Handling and Generation
+##################################################
+
+## Can't add two strings
+"hello" + "world"
+
+
+## Can't turn "seven" to numeric
+as.numeric(c("5", "6", "seven"))
+
+
+## Messages can be supressed but prints cannot -- can be better to use messages
+f <- function() {
+  message("This is a message.")
+}
+
+f()
+suppressMessages(f())
+
+
+## Error messages with stop
+f2 <- function() {
+  message(Sys.time(), " This is a message.")
+}
+f2()
+
+stop("Something erroneous has occurred!")  ## error message
+
+
+name_of_function <- function() {
+  stop("Something bad happened.")
+}
+
+name_of_function()
+
+
+##Stop if not (reverse of stop)
+error_if_n_is_greater_than_zero <- function(n) {
+  stopifnot(n <= 0)
+  n
+}
+
+error_if_n_is_greater_than_zero(5)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| error: true
+error_if_n_squared <- function(n) {
+  ## Ok use
+  stopifnot(n <= 0)
+
+  ## Create an internal object
+  n_squared <- n^2
+
+  ## Not ok, since we are using the internal object n_squared
+  stopifnot(n_squared <= 10)
+  n
+}
+
+error_if_n_squared(-2)
+
+## This generates a confusing error message to our users
+error_if_n_squared(-4)
+
+
+## rlang arg_match helps with close matches
+fn <- function(x = c("foo", "bar")) {
+  x <- rlang::arg_match(x)
+
+  ## Known scenario 1
+  if (x == "foo") {
+    print("I know what to do here with 'x = foo'")
+  }
+
+  ## Known scenario 2
+  if (x == "bar") {
+    print("I know what to do here with 'x = bar'")
+  }
+}
+fn("foo")
+fn("zoo")
+
+
+## Stop vs. Warning
+  # Use stop when its really bad and it needs to stop
+  # Use warning when its maybe OK to continue
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| warning: true
+warning("Consider yourself warned!")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| warning: true
+make_NA <- function(x) {
+  warning("Generating an NA.")
+  NA
+}
+
+make_NA("Sodium")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+message("In a bottle.")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+as.numeric(c("5", "6", "seven"))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+beera <- function(expr) {
+  tryCatch(expr,
+           error = function(e) {
+             message("An error occurred:\n", e)
+           },
+           warning = function(w) {
+             message("A warning occured:\n", w)
+           },
+           finally = {
+             message("Finally done!")
+           }
+  )
+}
+
+beera({
+  2 + 2
+})
+
+beera({
+  "two" + 2
+})
+
+beera({
+  as.numeric(c(1, "two", 3))
+})
+
+
+## ----error=TRUE----------------------------------------------------------------------------------------------------------
+is_even <- function(n) {
+  n %% 2 == 0
+}
+
+is_even(768)
+
+is_even("two")
+
+
+## tryCatch will rerun code a bit later to see if it will work
+is_even_error <- function(n) {
+  tryCatch(n %% 2 == 0,
+           error = function(e) {
+             FALSE
+           }
+  )
+}
+
+is_even_error(714)
+
+is_even_error("eight")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+is_even_check <- function(n) {
+  is.numeric(n) && n %% 2 == 0
+}
+
+is_even_check(1876)
+
+is_even_check("twelve")
+
+
+## Microbenchmark package gives how long it takes for each function to tbe applied to the same data
+library(microbenchmark)
+microbenchmark(sapply(letters, is_even_check))
+
+
+
+###############################################################
+##### CLASS NOTES: LECTURE 20 - Working with dates and times
+###############################################################
+
+# date = <date>
+# time = <time>
+# date-time = <dttm> OR "POSIXct" OR "POSIXt"
+
+## lubridate package to deal with dates
+library("tidyverse")
+library("lubridate")
+help(package = "lubridate")   ## get list of all functions in lubridate
+
+
+## lubridate versions
+today()    ## today's date in "yyyy-mm-dd" format; class = "date"
+now()      ## today's date in "yyyy-mm-dd mm:ss:ss EDT" format; class = "POSIXCT"
+
+## base R versions
+base::Sys.Date()   ## equivalent of lubridate's today()
+base::Sys.time()   ## equivalent of lubridate's now()
+
+## Store today's date in x and check class (="Date")
+x <- today()
+class(x)
+
+
+## Indicate that a field is a date and the order of the mdy
+ymd("1970-01-01")
+ymd("2017-01-31")
+mdy("January 31st, 2017")
+dmy("31-Jan-2017")
+ymd(20170131)      # still works with numbers
+
+## Base R equivalent to lubridate's mdy/ymd/etc, but quickly becomes complicated
+as.Date("1970-01-01")
+as.Date("January 31st, 2017", "%B %dst, %Y")
+as.Date(gsub("st,", "", "January 31st, 2017"), "%B %d %Y")
+
+
+
+
+## Alternative formulations
+ymd("2016-09-13") ## International standard
+ymd("2016/09/13") ## Just figure it out
+mdy("09-13-2016") ## Mostly U.S.
+dmy("13-09-2016") ## Europe
+
+x <- c(
+  "2016-04-05",
+  "2016/05/06",
+  "2016,10,4"
+)
+ymd(x)
+
+
+## Look at flights data and create YMD variable with make_date
+library("nycflights13")
+
+flights %>%
+  select(year, month, day) %>%
+  mutate(departure = make_date(year, month, day))
+
+
+## make date-time column using make_datetime
+args(make_datetime)
+
+flights %>%
+  select(year, month, day, hour, minute) %>%
+  mutate(departure = make_datetime(year, month, day, hour, min = minute))
+
+
+## Converting date to date-time and vice versa
+today()
+as_datetime(today())
+
+now()
+as_date(now())
+
+
+## Create date-time objects from strings
+ymd_hms("2017-01-31 20:11:59")
+mdy_hm("01/31/2017 08:01")
+
+ymd_hms("2016-09-13 14:00:00")
+ymd_hms("2016-09-13 14:00:00", tz = "America/New_York") ## can also provide time zone
+ymd_hms("2016-09-13 14:00:00", tz = "") ##defaults to your computers time zone
+
+
+## POSIXct; # seconds since january 1 1970
+x <- ymd_hm("1970-01-01 01:00")
+class(x)
+unclass(x)   # number of seconds
+typeof(x)    # a very large number technically
+attributes(x)
+
+
+## POSIXt; similar as POSIXct but more info, # seconds since january 1 1970
+y <- as.POSIXlt(x)
+y
+typeof(y)
+attributes(y)  ## POSIXt is rare, POSIXct is more common
+
+
+## Time Zone suck!
+x <- ymd_hm("1970-01-01 01:00", tz = "")
+x
+attributes(x)   # stores empty time zone
+
+
+## Specify time zone
+attr(x, "tzone") <- "US/Pacific"
+x
+
+attr(x, "tzone") <- "US/Eastern"
+x
+
+
+## Artithmetic with date-times
+x <- ymd("2012-01-01", tz = "") ## Midnight
+y <- dmy_hms("9 Jan 2011 11:34:21", tz = "")
+x  #counts as midnight
+y
+x - y ## this works
+
+x < y ## this works
+x > y ## this works
+x == y ## this works
+x + y ## what??? why does this not work? Cannot add dates
+
+x + 3 * 60 * 60   # add 3 hours (3 hours * 60 minutes * 60 seconds)
+
+## Can also do addition with dates, but unit is days
+y <- date(y)
+y
+y + 1     ##adds a day
+
+
+## It recognizes leap years
+x <- ymd("2012-03-01")
+y <- ymd("2012-02-28")
+x - y
+
+x <- ymd("2013-03-01")
+y <- ymd("2013-02-28")
+x - y
+
+
+## Difference between time zones make it actually the same time
+x <- ymd_hms("2012-10-25 01:00:00", tz = "")
+y <- ymd_hms("2012-10-25 05:00:00", tz = "GMT")
+y - x
+
+
+## Shows years with leap seconds
+.leap.seconds
+
+
+## can get info about a date, like month, day of week, etc.
+x <- ymd_hms(c(
+  "2012-10-25 01:13:46",
+  "2015-04-23 15:11:23"
+), tz = "")
+year(x)
+month(x)
+day(x)
+weekdays(x)
+
+x <- ymd_hms(c(
+  "2012-10-25 01:13:46",
+  "2015-04-23 15:11:23"
+), tz = "")
+minute(x)
+second(x)
+hour(x)
+week(x)
+
+
+## Load in storm data
+library(here)
+library(readr)
+library(dplyr)
+storm <- read_csv(here("data", "storms_2004.csv.gz"), progress = FALSE)
+storm
+names(storm)
+
+## Filter out and mutate some things
+storm_sub <-
+  storm %>%
+  select(BEGIN_DATE_TIME, EVENT_TYPE, DEATHS_DIRECT) %>%
+  mutate(begin = dmy_hms(BEGIN_DATE_TIME)) %>%
+  rename(type = EVENT_TYPE, deaths = DEATHS_DIRECT) %>%
+  select(begin, type, deaths)
+storm_sub
+
+
+## Make histogram of when storm start; ggplot already knows what is useful to print
+library("ggplot2")
+storm_sub %>%
+  ggplot(aes(x = begin)) +
+  geom_histogram(bins = 20) +
+  theme_bw()
+
+
+## Another histogram
+#| fig-width: 12
+#| fig-height: 12
+library(ggplot2)
+storm_sub %>%
+  ggplot(aes(x = begin)) +
+  facet_wrap(~type) +
+  geom_histogram(bins = 20) +
+  theme_bw() +
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+
+## Scatter plot
+storm_sub %>%
+  ggplot(aes(x = begin, y = deaths)) +
+  geom_point()
+
+
+## Another scatter plot
+storm_sub %>%
+  filter(month(begin) == 6) %>%
+  ggplot(aes(begin, deaths)) +
+  geom_point()
+
+
+## Another scatter plot
+storm_sub %>%
+  filter(month(begin) == 6, day(begin) == 16) %>%
+  ggplot(aes(begin, deaths)) +
+  geom_point()
+
+
+## ----eval=FALSE----------------------------------------------------------------------------------------------------------
+## ymd(c("2010-10-10", "bananas"))
+##
+## ## Compare against base R's behavior:
+## as.Date(c("2010-10-10", "bananas"))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+unclass(today())
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 20
+
+
+
+
+###############################################################
+##### CLASS NOTES: LECTURE 21 - Regular Expressions
+###############################################################
+## Regular expression (i.e., regec or regexp) is a concise language for describing patterns in character strings
+  # Can be used for:
+    # searching for a pattern or string
+    # replacing one part of a string
+
+## Functions
+  # grepl(): takes two arguments and returns a logical (true/false)
+
+## String basics
+string1 <- "This is a string"
+string2 <- 'If I want to include a "quote" inside a string, I use single quotes'
+string1
+string2
+
+## vector with strings
+c("one", "two", "three")
+
+
+#### GREPL(): takes two arguments and returns a logical
+## searching for a regular expression ("a") in a string ("Maryland")
+regular_expression <- "a"
+string_to_search <- "Maryland"
+grepl(pattern = regular_expression, x = string_to_search) # returns "TRUE"
+
+## searching for a regular expression ("u") in a string ("Maryland")
+regular_expression <- "u"
+string_to_search <- "Maryland"
+grepl(pattern = regular_expression, x = string_to_search) # returns "FALSE"
+
+## More grepl searches
+grepl("land", "Maryland")
+grepl("ryla", "Maryland")
+grepl("Marly", "Maryland")
+grepl("dany", "Maryland")
+
+# METACHARACTERS
+
+  # . represents any character other than a new line
+      grepl(".", "Maryland")            # TRUE
+      grepl(".", "*&2[0+,%<@#~|}")      # TRUE
+      grepl(".", "")                    # FALSE
+      grepl("a.b", c("aaa", "aab", "abb", "acadb"))  # F,T,T,T
+
+  # + indicates one or more of preceding expression is present
+      grepl("a+", "Maryland")     # Does "Maryland" contain one or more of "a"
+      grepl("x+", "Maryland")     # Does "Maryland" contain one or more of "x" ?
+
+  # * indicates zero or more of preceding expression is present
+      grepl("x*", "Maryland")     # Does "Maryland" contain zero or more of "x" ?
+      grepl("(xx)*", "Maryland")  # Does "Maryland" contain zero or more of "x" ?
+
+  # ? indicates zero or 1 of preceding expression is NOT present or present AT MOST 1 time
+
+  # {} indicates number of character or metacharacter it contains
+      grepl("s{2}", "Mississippi")        # Does "Mississippi" contain exactly 2 adjacent "s" ?
+      grepl("ss", "Mississippi")          # Does "Mississippi" contain exactly 2 adjacent "s" ?
+      grepl("s{1,3}", "Mississippi")      # Does "Mississippi" contain between 1 and 3 adjacent "s" ?
+      grepl("i{2,3}", "Mississippi")      # Does "Mississippi" contain between 2 and 3 adjacent "i" ?
+
+      grepl("(iss){2}", "Mississippi")   # Does "Mississippi" contain between 2 adjacent "iss" ?
+      grepl("(ss){2}", "Mississippi")     # Does "Mississippi" contain between 2 adjacent "ss" ?
+      grepl("(i.{2}){3}", "Mississippi")  # Does "Mississippi" contain the pattern of an "i" followed by 2 of any character, with that pattern repeated three times adjacently?
+
+  # () creates a capture group
+  # Character sets
+    # words: "\\w"
+      grepl("\\w", "abcdefghijklmnopqrstuvwxyz0123456789")
+
+    # digits: "\\d"
+      grepl("\\d", "0123456789")
+
+    # whitespace: "\\s"
+    # NOT words: "\\W"
+    # NOT digits: "\\D"
+    # NOT whitespace: "\\S"
+  # "\\" to indicate you want the character, not metacharacter
+      grepl("\\+", "tragedy + time = humor")
+      grepl("\\.", "https://publichealth.jhu.edu")
+      x <- c("\'", "\"", "\\")
+      x
+      writeLines(x)
+  # "\n" = new line
+
+  # "\t" = tab
+      x <- c("\\t", "\\n", "\u00b5")
+      x
+      writeLines(x)
+
+
+# more grepl examples
+      grepl("\\s", "\n\t   ")
+
+      grepl("\\d", "abcdefghijklmnopqrstuvwxyz")
+
+      grepl("\\D", "abcdefghijklmnopqrstuvwxyz")
+
+      grepl("\\w", "\n\t   ")
+
+
+
+
+## Brackets specify specfic character sets
+grepl("[aeiou]", "rhythms")
+
+## ^ inside brackets matches all characters EXCEPT the lowercase vowels
+grepl("[^aeiou]", "rhythms")
+
+
+## - means anything between the left and right
+grepl("[a-m]", "xyz")
+grepl("[a-m]", "ABC")
+grepl("[a-mA-M]", "ABC")
+
+
+## ^ is looking for things at the beginning
+grepl("^a", c("bab", "aab"))
+
+## $ is looking for things at the end
+grepl("b$", c("bab", "aab"))
+
+## combining some
+grepl("^[ab]*$", c("bab", "aab", "abc"))
+
+
+## | is OR metacharacter -- matches either the regex on left OR right
+grepl("a|b", c("abc", "bcd", "cde"))      # looking for a or b
+grepl("North|South", c("South Dakota", "North Carolina", "West Virginia"))
+
+## state.name dataset with a vector of strings for each US state
+head(state.name)
+length(state.name)
+grepl("land", state.name)
+
+## state names that begin and end with a vowel
+start_end_vowel <- "^[AEIOU]{1}.+[aeiou]{1}$"
+vowel_state_lgl <- grepl(start_end_vowel, state.name)
+head(vowel_state_lgl)
+state.name[vowel_state_lgl]
+
+## Create tibble that shows meaning of each metacharacter
+library(knitr)
+
+mc_tibl <- data.frame(
+  Metacharacter =
+    c(
+      ".", "\\\\w", "\\\\W", "\\\\d", "\\\\D",
+      "\\\\s", "\\\\S", "[xyz]", "[^xyz]", "[a-z]",
+      "^", "$", "\\\\n", "+", "*", "?", "|", "{5}", "{2, 5}",
+      "{2, }"
+    ),
+  Meaning =
+    c(
+      "Any Character", "A Word", "Not a Word", "A Digit", "Not a Digit",
+      "Whitespace", "Not Whitespace", "A Set of Characters",
+      "Negation of Set", "A Range of Characters",
+      "Beginning of String", "End of String", "Newline",
+      "One or More of Previous", "Zero or More of Previous",
+      "Zero or One of Previous", "Either the Previous or the Following",
+      "Exactly 5 of Previous", "Between 2 and 5 or Previous",
+      "More than 2 of Previous"
+    ),
+  stringsAsFactors = FALSE
+)
+kable(mc_tibl, align = "c")
+
+
+## Antoher example
+grepl("[Ii]", c("Hawaii", "Illinois", "Kentucky"))
+
+
+## grep() -- old fashioned version that returns indices of the vector
+grep(pattern = "[Ii]", x = c("Hawaii", "Illinois", "Kentucky"))
+
+
+## sub() replaces the first instance of regex found in each string
+sub(pattern = "[Ii]", replacement = "1", x = c("Hawaii", "Illinois", "Kentucky"))
+
+
+## gsub replaces every instance of the regex that is matched
+gsub("[Ii]", "1", c("Hawaii", "Illinois", "Kentucky"))
+
+
+## split up strings on patterns
+two_s <- state.name[grep("ss", state.name)]
+two_s
+strsplit(x = two_s, split = "ss")
+
+
+## stringr from tidyverse package
+  # all take data and then string as arguments
+library(stringr)
+state_tbl <- paste(state.name, state.area, state.abb)
+head(state_tbl)
+
+## str_extract --> returns substring that matches expression
+str_extract(state_tbl, "[0-9]+")
+
+## str_detect --> equivalent to grepl() and returns true/false
+str_detect(state_tbl, "[0-9]+")
+grepl("[0-9]+", state_tbl)
+
+## str_order --> numeric vector corresponding to alphabetical order of strings in vector
+head(state.name)
+str_order(state.name)
+
+head(state.abb)
+str_order(state.abb)
+
+## str_replace --> equivalent to sub(); replaces regular expressions
+str_replace(string = state.name, pattern = "[Aa]", replace = "B")
+sub(pattern = "[Aa]", replacement = "B", x = state.name)
+
+
+## str_pad --> pads strings with other characters
+str_pad("Thai", width = 8, side = "left", pad = "-")
+str_pad("Thai", width = 8, side = "right", pad = "-")
+str_pad("Thai", width = 8, side = "both", pad = "-")
+
+
+## str_to_title --> puts strings in title case
+cases <- c("CAPS", "low", "Title")
+str_to_title(cases)
+
+
+## str_trim --> deletes white space from both sides of a string
+to_trim <- c("   space", "the    ", "    final frontier  ")
+str_trim(to_trim)
+
+
+## str_wrap --> inserts new lines in strings to make them only so wide in characters
+pasted_states <- paste(state.name[1:20], collapse = " ")
+cat(str_wrap(pasted_states, width = 80))
+cat(str_wrap(pasted_states, width = 30))
+
+
+## gets words from a string
+a_tale <- "It was the best of times it was the worst of times it was the age of wisdom it was the age of foolishness"
+word(a_tale, 2)
+word(a_tale, end = 3) # end = last word to extract
+word(a_tale, start = 11, end = 15) # start = first word to extract
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+head(stringr::words)
+length(stringr::words)
+
+
+###############################################################
+##### CLASS NOTES: LECTURE 22 - Working with factors
+###############################################################
+
+## Factors are usefule when:
+  # you want to include categorical variables in regression models
+  # you want to plot categorical data
+  # you want to display character vectors in a non-alphabetical order
+
+## Issues with vectors
+
+# Sorting alphabetically might not be useful
+x <- c("Dec", "Apr", "Jan", "Mar")
+sort(x)
+
+# no protection from typos
+x_typo <- c("Dec", "Apr", "Jam", "Mar")
+
+## Create vector with months and create a factor with it
+month_levels <- c(
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+)
+
+y <- factor(x, levels = month_levels)
+y
+# Check attributes and levels of y
+attributes(y)
+levels(y)
+class(y)
+
+# Sort now sorts based on the order of the level
+sort(y)
+
+## Any values not in the level will be silently converted to NA
+y_typo <- factor(x_typo, levels = month_levels)
+y_typo
+
+
+## What if new categories are added, categories change, or mess up relation between numeric and label?
+## Get numeric value of factor
+library(tidyverse)
+
+x1_original <- c(10, 10, 10, 50, 60, 20, 20, 40)
+x1_factor <- factor(x1_original)
+attributes(x1_factor)
+
+tibble(x1_original, x1_factor) %>%
+  mutate(x1_numeric = as.numeric(x1_factor))
+
+
+## as.numeric with vectors
+as.numeric(c("hello"))
+as.numeric(factor(c("hello")))
+as.numeric(factor(c("hello", "goodbye")))  # since we didn't specify levels, R stores it alphabetically as factor
+
+## factor silently makes a missing value if the values in the data and levels do not match
+factor("a", levels = "c")
+
+## BECAUSE OF DISPUTES OVER HOW FACTORS WORK, DEFAULT FOR DATA IMPORTS IS TO
+## READ STRINGS AS STRINGS NOT FACTORS
+
+## Make income level factor and random Y and perform linear regression
+  # factors must be used if you want to be able to pick reference category
+income_level <- c(
+  rep("low", 10),
+  rep("medium", 10),
+  rep("high", 10)
+)
+income_level
+
+x <- factor(income_level)
+x
+
+y <- rnorm(30) # generate some random obs from a normal dist
+lm(y ~ x)      # high as reference category
+
+## factors used to be more efficient in storage but this is less of an issue now
+income_level <- c(
+  rep("low", 10000),
+  rep("medium", 10000),
+  rep("high", 10000)
+)
+
+format(object.size(income_level), units = "Kb") # size of the character string
+format(object.size(factor(income_level)), units = "Kb") # size of the factor
+
+#### FORCATS PACKAGE
+## load forcats package for working with categorical variables (part of tidvyerse)
+library("forcats")
+gss_cat
+gss_cat %>%
+  count(race)
+
+
+## A bar chart showing the distribution of race.
+  # There are ~2000 records with race "Other", 3000 with race "Black" and other,
+  # 15,000 with race "White".
+gss_cat %>%
+  ggplot(aes(x = race)) +
+  geom_bar()
+
+
+## count number in each religion factor
+gss_cat %>%
+  count(relig)
+
+attributes(gss_cat$relig)
+
+
+## Scatterplot with poorly ordered attributes
+#| fig-alt: >
+#|   A scatterplot of with tvhours on the x-axis and religion on the y-axis.
+#|   The y-axis is ordered seemingly aribtrarily making it hard to get
+#|   any sense of overall pattern.
+relig_summary <- gss_cat %>%
+  group_by(relig) %>%
+  summarise(
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  )
+
+relig_summary %>%
+  ggplot(aes(x = tvhours, y = relig)) +
+  geom_point()
+
+
+## Scatterplot ordered by increasing order ot tvhrs
+#| fig-alt: >
+#|   The same scatterplot as above, but now the religion is displayed in
+#|   increasing order of tvhours. "Other eastern" has the fewest tvhours
+#|   under 2, and "Don't know" has the highest (over 5).
+relig_summary %>%
+  ggplot(aes(
+    x = tvhours,
+    y = fct_reorder(.f = relig, .x = tvhours)
+  )) +
+  geom_point()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+relig_summary %>%
+  mutate(relig = fct_reorder(relig, tvhours)) %>%
+  ggplot(aes(x = tvhours, y = relig)) +
+  geom_point()
+
+
+## Scatterplot w/ and w/o ordering by age
+#| fig-alt: >
+#|   A scatterplot with age on the x-axis and income on the y-axis. Income
+#|   has been reordered in order of average age which doesn't make much
+#|   sense. One section of the y-axis goes from $6000-6999, then <$1000,
+#|   then $8000-9999.
+rincome_summary <-
+  gss_cat %>%
+  group_by(rincome) %>%
+  summarise(
+    age = mean(age, na.rm = TRUE),
+    n = n()
+  )
+
+## Original rincome order
+rincome_summary %>%
+  ggplot(aes(x = age, y = rincome)) +
+  geom_point()
+
+## rincome re-ordered by age's values
+rincome_summary %>%
+  ggplot(aes(x = age, y = fct_reorder(.f = rincome, .x = age))) +
+  geom_point()
+
+
+## load penguins data
+library(palmerpenguins)
+penguins
+
+## Reorder scatterplot again
+#| fig-alt: >
+#|   The same scatterplot but now "Not Applicable" is displayed at the
+#|   bottom of the y-axis. Generally there is a positive association
+#|   between income and age, and the income band with the highest average
+#|   age is "Not applicable".
+rincome_summary %>%
+  ggplot(aes(age, fct_relevel(rincome, "Not applicable"))) +
+  geom_point()
+
+
+## line plot with rearranging of legend order via forcat
+  #fct_reorder2(f,x,y) reorders factor f by y values associated with largest x values
+#| layout-ncol: 2
+#| fig-width: 4
+#| fig-height: 2
+#| fig-alt: >
+#|   - A line plot with age on the x-axis and proportion on the y-axis.
+#|     There is one line for each category of marital status: no answer,
+#|     never married, separated, divorced, widowed, and married. It is
+#|     a little hard to read the plot because the order of the legend is
+#|     unrelated to the lines on the plot.
+#|   - Rearranging the legend makes the plot easier to read because the
+#|     legend colours now match the order of the lines on the far right
+#|     of the plot. You can see some unsuprising patterns: the proportion
+#|     never marred decreases with age, married forms an upside down U
+#|     shape, and widowed starts off low but increases steeply after age
+#|     60.
+by_age <-
+  gss_cat %>%
+  filter(!is.na(age)) %>%
+  count(age, marital) %>%
+  group_by(age) %>%
+  mutate(prop = n / sum(n))
+
+by_age %>%
+  ggplot(aes(age, prop, colour = marital)) +
+  geom_line(na.rm = TRUE)
+
+by_age %>%
+  ggplot(aes(age, prop, colour = fct_reorder2(marital, age, prop))) +
+  geom_line() +
+  labs(colour = "marital")
+
+
+## Bar chart ordered by frequency of marital status
+#| fig-alt: >
+#|   A bar char of marital status ordered in from least to most common:
+#|   no answer (~0), separated (~1,000), widowed (~2,000), divorced
+#|   (~3,000), never married (~5,000), married (~10,000).
+gss_cat %>%
+  mutate(marital = marital %>% fct_infreq() %>% fct_rev()) %>%
+  ggplot(aes(marital)) +
+  geom_bar()
+
+
+## fct_recode for partyid factor to make clearer labels
+gss_cat %>%
+  count(partyid)
+gss_cat %>%
+  mutate(partyid = fct_recode(partyid,
+                              "Republican, strong"    = "Strong republican",
+                              "Republican, weak"      = "Not str republican",
+                              "Independent, near rep" = "Ind,near rep",
+                              "Independent, near dem" = "Ind,near dem",
+                              "Democrat, weak"        = "Not str democrat",
+                              "Democrat, strong"      = "Strong democrat"
+  )) %>%
+  count(partyid)
+
+## combin groups using fct_recode
+gss_cat %>%
+  mutate(partyid = fct_recode(partyid,
+                              "Republican, strong"    = "Strong republican",
+                              "Republican, weak"      = "Not str republican",
+                              "Independent, near rep" = "Ind,near rep",
+                              "Independent, near dem" = "Ind,near dem",
+                              "Democrat, weak"        = "Not str democrat",
+                              "Democrat, strong"      = "Strong democrat",
+                              "Other"                 = "No answer",
+                              "Other"                 = "Don't know",
+                              "Other"                 = "Other party"
+  )) %>%
+  count(partyid)
+
+
+## fct_collapse to combine factors
+gss_cat %>%
+  mutate(partyid = fct_collapse(partyid,
+                                "other" = c("No answer", "Don't know", "Other party"),
+                                "rep" = c("Strong republican", "Not str republican"),
+                                "ind" = c("Ind,near rep", "Independent", "Ind,near dem"),
+                                "dem" = c("Not str democrat", "Strong democrat")
+  )) %>%
+  count(partyid)
+
+
+## fct_lump_lowfreq to lump together smaller groups
+gss_cat %>%
+  mutate(relig = fct_lump_lowfreq(relig)) %>%
+  count(relig)   ## grouped too much though
+
+
+## fct_lump_n allows you to specify number of groups
+gss_cat %>%
+  mutate(relig = fct_lump_n(relig, n = 10)) %>%
+  count(relig, sort = TRUE) %>%
+  print(n = Inf)
+
+
+## also fct_lump_min()
+## also fct_lump_prop()
+
+
+## Ordered factors imply a strict ordering and equal distance between levels
+ordered(c("a", "b", "c"))
+
+
+###############################################################
+##### CLASS NOTES: LECTURE 23 - Tidytext and sentiment analysis
+###############################################################
+
+# tidy text format -- one-token-per-row where a token is a meaninful unit of text
+
+# text can be stored as:
+  # string
+  # corpus -- contain raw strings but have some metadata
+  # document-term matrix (one row for each document, on column for each term)
+
+
+## ----out.width = "95%", echo = FALSE-------------------------------------------------------------------------------------
+knitr::include_graphics("http://r4ds.had.co.nz/images/tidy-1.png")
+
+
+## ----echo=FALSE, out.width = '90%', fig.cap="A flowchart of a typical text analysis using tidy data principles."---------
+knitr::include_graphics("https://www.tidytextmining.com/images/tmwr_0101.png")
+
+
+## ----eval=FALSE----------------------------------------------------------------------------------------------------------
+## ?unnest_tokens
+
+## load packages for working with tidy text data
+library(tidyverse)
+library(stringr)
+library(tidytext) ## needs to be installed
+library(janeaustenr) ## needs to be installed
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| label: pengpreface
+#| echo: false
+#| fig-cap: 'Preface from R Programming for Data Science'
+#| out-width: '90%'
+knitr::include_graphics("../../images/peng_preface.png")
+
+
+## each sentence in one string of vector
+peng_preface <-
+  c(
+    "I started using R in 1998 when I was a college undergraduate working on my senior thesis.",
+    "The version was 0.63.",
+    "I was an applied mathematics major with a statistics concentration and I was working with Dr. Nicolas Hengartner on an analysis of word frequencies in classic texts (Shakespeare, Milton, etc.).",
+    "The idea was to see if we could identify the authorship of each of the texts based on how frequently they used certain words.",
+    "We downloaded the data from Project Gutenberg and used some basic linear discriminant analysis for the modeling.",
+    "The work was eventually published and was my first ever peer-reviewed publication.",
+    "I guess you could argue it was my first real 'data science' experience."
+  )
+
+peng_preface
+
+
+## take character vector and turn it into a tibble
+peng_preface_df <- tibble(
+  line = 1:7,
+  text = peng_preface
+)
+peng_preface_df
+
+
+## unnest_tokens --> create tibble with a row for each word and columns for the word and the line it was from
+peng_token <-
+  peng_preface_df %>%
+  unnest_tokens(
+    output = word,
+    input = text,
+    token = "words"
+  )
+
+peng_token %>%
+  head()
+
+peng_token %>%
+  tail()
+
+
+## unnest_tokens --> create tibble with a row for each character and columns for the character and the line it was from
+peng_preface_df %>%
+  unnest_tokens(word,
+                text,
+                token = "characters"
+  ) %>%
+  head()
+
+
+## unnest_tokens --> create tibble with a row for every 3 words and columns for the 3 words and the line it was from
+peng_preface_df %>%
+  unnest_tokens(word,
+                text,
+                token = "ngrams",
+                n = 3
+  ) %>%
+  head()
+
+
+## unnest_tokens --> create tibble with a row for every 4 characters and columns for the 4 characters and the line it was from
+peng_preface_df %>%
+  unnest_tokens(word,
+                text,
+                token = "character_shingles",
+                n = 4
+  ) %>%
+  head()
+
+
+## unnest_tokens --> create tibble with a row for every set between spaces
+peng_preface_df %>%
+  unnest_tokens(word,
+                text,
+                token = stringr::str_split,
+                pattern = " "
+  ) %>%
+  head()
+
+
+## New example text to tibble
+gorman_hill_we_climb <-
+  c(
+    "When day comes we ask ourselves, where can we find light in this neverending shade?",
+    "The loss we carry, a sea we must wade.",
+    "We’ve braved the belly of the beast, we’ve learned that quiet isn’t always peace and the norms and notions of what just is, isn’t always justice.",
+    "And yet the dawn is ours before we knew it, somehow we do it, somehow we’ve weathered and witnessed a nation that isn’t broken but simply unfinished."
+  )
+
+hill_df <- tibble(
+  line = seq_along(gorman_hill_we_climb),
+  text = gorman_hill_we_climb
+)
+hill_df
+
+## unnest_tokens: token = words
+hill_df %>%
+  unnest_tokens(
+    output = wordsforfun,   ## column name in new data where words will go
+    input = text,           ## column name in original data
+    token = "words"         ## desired token
+  )
+
+## unnest_tokens: token = characters
+hill_df %>%
+  unnest_tokens(
+    output = wordsforfun,   ## column name in new data where words will go
+    input = text,           ## column name in original data
+    token = "characters",         ## desired token
+  )
+
+## unnest_tokens: token = sentences
+hill_df %>%
+  unnest_tokens(
+    output = wordsforfun,   ## column name in new data where words will go
+    input = text,           ## column name in original data
+    token = "sentences",         ## desired token
+  )
+
+## unnest_tokens: token = ngrams
+hill_df %>%
+  unnest_tokens(
+    output = wordsforfun,   ## column name in new data where words will go
+    input = text,           ## column name in original data
+    token = "ngrams",         ## desired token
+    n = 3
+  )
+
+## unnest_tokens: token = character_shingles
+hill_df %>%
+  unnest_tokens(
+    output = wordsforfun,            ## column name in new data where words will go
+    input = text,                   ## column name in original data
+    token = "character_shingles",   ## desired token
+    n = 4
+  )
+
+## load jane austen package and put in tibble
+library(janeaustenr)
+head(prideprejudice, 20)
+
+pp_book_df <- tibble(text = prideprejudice)
+
+## unnest_tokens, token = words
+pp_book_df %>%
+  unnest_tokens(
+    output = word,
+    input = text,
+    token = "words"
+  )
+
+
+## unnest_tokens, token = paragraphs
+tmp <- pp_book_df %>%
+  unnest_tokens(
+    output = paragraph,
+    input = text,
+    token = "paragraphs"
+  )
+tmp
+tmp[3, 1]
+
+
+## unnest_tokens, token = sentences; gets tricked by Mr. and Mrs.
+pp_book_df %>%
+  unnest_tokens(
+    output = sentence,
+    input = text,
+    token = "sentences"
+  )
+
+
+## unnest_tokens, token = paragraphs and then token = words
+paragraphs <-
+  pp_book_df %>%
+  unnest_tokens(
+    output = paragraph,
+    input = text,
+    token = "paragraphs"
+  ) %>%
+  mutate(paragraph_number = row_number())
+
+paragraphs
+
+paragraphs %>%
+  unnest_tokens(
+    output = word,
+    input = paragraph
+  )
+
+
+## ANALYZING TEXT ONCE EXTRACTED
+
+## stop words (i.e., common words like the, of, to, etc.)
+data(stop_words)     # set of stop words
+table(stop_words$lexicon)     # lexicons of stop words
+stop_words %>%
+  head(n = 10)
+
+## anti_join to remove stop words
+words_by_paragraph <-
+  paragraphs %>%
+  unnest_tokens(
+    output = word,
+    input = paragraph
+  ) %>%
+  anti_join(stop_words)   # return all rows of x without a match in y
+
+words_by_paragraph
+
+
+## Look at top six words in the book
+words_by_paragraph %>%
+  count(word, sort = TRUE) %>%
+  head()
+
+
+## make plot of word count by word for words with at least 150
+words_by_paragraph %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 150) %>%
+  mutate(word = fct_reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+
+## get line number and chapter to find where all the chapters are
+austen_books() %>%
+  head()
+
+original_books <-
+  austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(                                  ## cumulative sum of logical vectors (where true = 1, false = 0)
+      str_detect(text,
+                 pattern = regex(
+                   pattern = "^chapter [\\divxlc]",     ## find anything that says "Chapter" and hten a number in digits or roman numerals
+                   ignore_case = TRUE
+                 )
+      )
+    )
+  ) %>%
+  ungroup()
+
+original_books
+
+
+## unnest_tokens = words and remove stop words
+tidy_books <- original_books %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
+tidy_books
+
+
+## most common words across all books by jane austen
+tidy_books %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 600) %>%
+  mutate(word = fct_reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+
+## ----echo=FALSE, out.width = '90%', fig.cap="A flowchart of a typical text analysis that uses tidytext for sentiment analysis."----
+knitr::include_graphics("https://www.tidytextmining.com/images/tmwr_0201.png")
+
+
+## SENTIMENT ANALYSES
+  # NRC lexicon -- positive, negative, anger, anticipation, discust, fear, joy, sadness, surprise, trust
+    get_sentiments("nrc")
+
+
+    # bing lexicon -- positive, negative
+    get_sentiments("bing")
+
+
+    # afinn lexicon -- -5 to 5 based on negativity vs positivity
+    get_sentiments("afinn")
+
+## Get joy sentiments and count sentiment frequency
+nrc_joy <- get_sentiments("nrc") %>%
+  filter(sentiment == "joy")
+
+tidy_books %>%
+  filter(book == "Emma") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+
+
+## get sentiment score for each word
+tidy_books %>%
+  inner_join(get_sentiments("bing"))
+
+
+## count positive and negative words in each section of the book
+tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book,
+        index = linenumber %/% 80,
+        sentiment
+  )
+
+
+## pivot_wider because we multiple rows for same sentiment
+jane_austen_sentiment <-
+  tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book,
+        index = linenumber %/% 80,
+        sentiment
+  ) %>%
+  pivot_wider(
+    names_from = sentiment,
+    values_from = n,
+    values_fill = 0
+  ) %>%
+  mutate(sentiment = positive - negative)
+
+jane_austen_sentiment
+
+
+## plot sentiment across all the books
+jane_austen_sentiment %>%
+  ggplot(aes(x = index, y = sentiment, fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(. ~ book, ncol = 2, scales = "free_x")
+
+
+## create word cloud
+library(wordcloud)
+
+tidy_books %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+
+
+## ----echo=FALSE, out.width = '90%', fig.cap=" A flowchart of a typical text analysis that combines tidytext with other tools and data formats, particularly the `tm` or `quanteda` packages. Here, we show how to convert back and forth between document-term matrices and tidy data frames, as well as converting from a Corpus object to a text data frame."----
+knitr::include_graphics("https://www.tidytextmining.com/images/tmwr_0501.png")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+tidy_austen <-
+  austen_books() %>%
+  mutate(line = row_number()) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
+tidy_austen
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+austen_sparse <- tidy_austen %>%
+  count(line, word) %>%
+  cast_sparse(row = line, column = word, value = n)
+
+austen_sparse[1:10, 1:10]
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+austen_dtm <- tidy_austen %>%
+  count(line, word) %>%
+  cast_dtm(document = line, term = word, value = n)
+
+austen_dtm
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+class(austen_dtm)
+dim(austen_dtm)
+as.matrix(austen_dtm[1:20, 1:10])
+
+
 ## ------------------------------------------------------------------------------------------------------------------------
 options(width = 120)
 sessioninfo::session_info()
+
+
+###############################################################
+##### CLASS NOTES: LECTURE 24 - Best practices for data analyses
+###############################################################
+## ETHICS
+  # Applied ethics
+  # Ethical theory
+  # Metaethics
+
+## Many data ethics case studies are around predictive algorithms
+  # example: black-box predictive algorithms and facial-recognition in policing
+  # How was the algorithm developed?
+    # What data used to train?
+    # What criteria used to tune?
+    # Accuracy rates by demographic?
+    # Who has access to the algorithm and data?
+    # Should data be accessible to researchers? Bad actors?
+  # How is the algorithm used?
+    # Misuse -- inaccurately tying people to crimes
+    # do people have a right to know they are in databases?
+    # companies profit w/o financial responsibility for misuse?
+
+## Best practices for sharing data
+  # FAIR Principles
+    # Findable -- good metadata and data so easy to find
+    # Accessible -- once found, clear how to access (authentication, authorization)
+    # Interoperable -- integrated with other data
+    # Reusable -- optimize reuse of data
+
+## Addressing concerns re: sharing data
+  # decrease impact of novel work -- share only after publication
+  # time spent on sharing data -- don't have to store internally tho
+  # human subjects data -- challenging but can be done (controlled-access repositories)
+
+## What data to share?
+  # data itself
+  # metadata
+  # data dictionary
+  # source code
+  # licensing -- choosealicense.com
+
+## When adapting code
+  # Copy code
+  # Version control before making any changes and
+      # put permalink to original source on commit message
+      # Use github coauthored message
+  # Make edits
+  # auto-style code using styler
+
+## Best practices for data visualization
+  # Questions to ask yourself
+    # What is the question?
+    # Why are we building the visualization?
+    # For whom are we producing the visualization?
+  # A good visualization tells a complete story in a single frame
+  # What type of plot to make? How to optimize effectiveness?
+
+  # Developing plots
+    # Show comparisons
+    # Show causality, mechanism, explanation
+    # Show multivariate data
+    # Integrate multiple modes of evidence
+    # Describe and document the evidence
+    # Content is king - good plots start with good questions
+  # Optimizing plots
+    # Maximize the data/ink ratio – if “ink” can be removed without reducing the information being communicated, then it should be removed.
+    # Maximize the range of perceptual conditions – your audience’s perceptual abilities may not be fully known, so it’s best to allow for a wide range, to the extent possible (or knowable).
+    # Show variation in the data, not variation in the design.
+  # Bad Plots
+    # Display as little information as possible.
+    # Obscure what you do show (with chart junk).
+    # Use pseudo-3D and color gratuitously.
+    # Make a pie chart (preferably in color and 3D).
+    # Use a poorly chosen scale.
+    # Ignore significant figures.
+
+  # Principles
+    # Create expository graphs to tell a story (figure and caption should be self-sufficient; it’s the first thing people look at)
+    # Be accurate and clear
+    # Let the data speak
+    # Make axes, labels and titles big
+    # Make labels full names (ideally with units when appropriate)
+    # Add informative legends; use space effectively
+    # Show as much information as possible, taking care not to obscure the message
+    # Science not sales: avoid unnecessary frills (especially gratuitous 3D)
+    # In tables, every digit should be meaningful
+
+  # Pie charts and donut plots suck! use bar plots instead
+  # Avoid 3D barplots
+  # Instead of bar plots, can also use box plots
+  # Instead of paired bar plots, try scatter plots or line plots
+
+
+
+
+library(tidyverse)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| fig-align: center
+#| echo: false
+#| fig-cap-location: "top"
+#| fig-width: 4
+knitr::include_graphics("http://upload.wikimedia.org/wikipedia/en/e/e9/John_Tukey.jpg")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| warning: false
+d <- airquality %>%
+  mutate(Summer = ifelse(Month %in% c(7, 8, 9), 2, 3))
+with(d, {
+  plot(Temp, Ozone, col = unclass(Summer), pch = 19, frame.plot = FALSE)
+  legend("topleft",
+         col = 2:3, pch = 19, bty = "n",
+         legend = c("Summer", "Non-Summer")
+  )
+})
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| warning: false
+airquality %>%
+  mutate(Summer = ifelse(Month %in% c(7, 8, 9),
+                         "Summer", "Non-Summer"
+  )) %>%
+  ggplot(aes(Temp, Ozone)) +
+  geom_point(aes(color = Summer), size = 2) +
+  theme_minimal()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+browsers <- c(
+  Chrome = 60, Safari = 14, UCBrowser = 7,
+  Firefox = 5, Opera = 3, IE = 3, Noinfo = 8
+)
+browsers.df <- gather(
+  data.frame(t(browsers)),
+  "browser", "proportion"
+)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+pie(browsers, main = "Browser Usage (July 2022)")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## ?pie
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p <- browsers.df %>%
+  ggplot(aes(
+    x = reorder(browser, -proportion),
+    y = proportion
+  )) +
+  geom_bar(stat = "identity")
+p
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+#| eval: false
+## ?ggplot2::theme
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p <- p + xlab("Browser") +
+  ylab("Proportion of Users")
+p
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + ggtitle("Browser Usage (July 2022)")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + ggtitle("Browser Usage (July 2022)") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p <- p + ggtitle("Browser Usage (July 2022)") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    text = element_text(size = 15)
+  )
+p
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + theme_bw()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + theme_dark()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + theme_classic() # axis lines!
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + ggthemes::theme_base()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+set.seed(1000)
+dat <- data.frame(
+  "Treatment" = rnorm(10, 30, sd = 4),
+  "Control" = rnorm(10, 36, sd = 4)
+)
+gather(dat, "type", "response") %>%
+  ggplot(aes(type, response)) +
+  geom_boxplot() +
+  geom_point(position = "jitter") +
+  ggtitle("Response to drug treatment")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+set.seed(1000)
+dat <- data.frame(
+  "Treatment" = rgamma(10, 10, 1),
+  "Control" = rgamma(10, 1, .01)
+)
+gather(dat, "type", "response") %>%
+  ggplot(aes(type, response)) +
+  geom_boxplot() +
+  geom_point(position = "jitter")
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+gather(dat, "type", "response") %>%
+  ggplot(aes(type, response)) +
+  geom_boxplot() +
+  geom_point(position = "jitter") +
+  scale_y_log10()
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+set.seed(1000)
+before <- runif(6, 5, 8)
+after <- rnorm(6, before * 1.15, 2)
+li <- range(c(before, after))
+ymx <- max(abs(after - before))
+
+par(mfrow = c(1, 2))
+plot(before, after,
+     xlab = "Before", ylab = "After",
+     ylim = li, xlim = li
+)
+abline(0, 1, lty = 2, col = 1)
+
+plot(before, after - before,
+     xlab = "Before", ylim = c(-ymx, ymx),
+     ylab = "Change (After - Before)", lwd = 2
+)
+abline(h = 0, lty = 2, col = 1)
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+z <- rep(c(0, 1), rep(6, 2))
+par(mfrow = c(1, 2))
+plot(z, c(before, after),
+     xaxt = "n", ylab = "Response",
+     xlab = "", xlim = c(-0.5, 1.5)
+)
+axis(side = 1, at = c(0, 1), c("Before", "After"))
+segments(rep(0, 6), before, rep(1, 6), after, col = 1)
+
+boxplot(before, after,
+        names = c("Before", "After"),
+        ylab = "Response"
+)
+
+
+## ----message=FALSE-------------------------------------------------------------------------------------------------------
+x <- read_csv("https://github.com/kbroman/Talk_Graphs/raw/master/R/fig8dat.csv") %>%
+  as_tibble(.name_repair = make.names)
+
+p <- x %>%
+  gather("drug", "proportion", -log.dose) %>%
+  ggplot(aes(
+    x = log.dose, y = proportion,
+    color = drug
+  )) +
+  geom_line()
+p
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + ggtitle("Survival proportion") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    text = element_text(size = 15)
+  )
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+p + ggtitle("Survival proportion") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    text = element_text(size = 15),
+    legend.position = c(0.2, 0.3)
+  )
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+transparent_legend <- theme(
+  legend.background = element_rect(fill = "transparent"),
+  legend.key = element_rect(
+    fill = "transparent",
+    color = "transparent"
+  )
+)
+
+p + ggtitle("Survival proportion") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    text = element_text(size = 15),
+    legend.position = c(0.2, 0.3)
+  ) +
+  transparent_legend
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+heights <- cbind(
+  rnorm(8, 73, 3), rnorm(8, 73, 3), rnorm(8, 80, 3),
+  rnorm(8, 78, 3), rnorm(8, 78, 3)
+)
+colnames(heights) <- c("SG", "PG", "C", "PF", "SF")
+rownames(heights) <- paste("team", 1:8)
+heights
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+round(heights, 1)
+
+
+## ----fig.cap=""----------------------------------------------------------------------------------------------------------
+transparent_legend <- theme(
+  legend.background = element_rect(fill = "transparent"),
+  legend.key = element_rect(
+    fill = "transparent",
+    color = "transparent"
+  )
+)
+
+p + ggtitle("Survival proportion") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    text = element_text(size = 15),
+    legend.position = c(0.2, 0.3)
+  ) +
+  xlab("dose (mg)") +
+  transparent_legend
+
+
+## ------------------------------------------------------------------------------------------------------------------------
+options(width = 120)
+sessioninfo::session_info()
+
+###############################################################
+##### CLASS NOTES: LECTURE 25 - Python for R Users
+###############################################################
+
+## SEE PYTHON EXAMPLE RMARKDOWN
+
+## ----repl-python, echo=FALSE, fig.cap='Using the repl_python() function', fig.align='center'-----------------------------
+knitr::include_graphics("https://rstudio.github.io/reticulate/images/python_repl.png")
+
 
 
 ## ------------------------------------------------------------------------------------------------------------------------

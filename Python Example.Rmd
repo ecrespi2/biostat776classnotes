@@ -1,0 +1,247 @@
+---
+title: "Python Example"
+output: html_document
+date: "2024-10-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Python basics
+
+Python is a high-level, object-oriented programming language useful to know for anyone analyzing data.
+
+The most important thing to know before learning Python, is that in Python, everything is an object (can be variables, functions, modules). Objects can be operated on with operators.
+
+- There is no compiling and no need to define the type of variables before using them.
+- No need to allocate memory for variables.
+- The code is easy to learn and easy to read (syntax).
+
+There is a large scientific community contributing to Python. Some of the most widely used libraries in Python are - numpy
+- scipy
+- pandas
+- matplotlib.
+
+### objects in python
+
+Everything in Python is an object. Think of an object as a data structure that contains both data as well as functions. These objects can be variables, functions, and modules which are all objects. We can operate on these objects with what are called operators (e.g. addition, subtraction, concatenation or other operations), define/apply functions, test/apply for conditionals statements, (e.g. if, else statements) or iterate over the objects.
+
+Not all objects are required to have attributes and methods to operate on the objects in Python, but everything is an object (i.e. all objects can be assigned to a variable or passed as an argument to a function). A user can work with built-in defined classes of objects or can create new classes of objects. Using these objects, a user can perform operations on the objects by modifying / interacting with them.
+
+### variables
+
+Variable names are case sensitive, can contain numbers and letters, can contain underscores, cannot begin with a number, cannot contain illegal characters and cannot be one of the 31 keywords in Python:
+
+“and, as, assert, break, class, continue, def, del, elif, else, except, exec, finally, for, from, global, if, import, in, is, lambda, not, or, pass, print, raise, return, try, while, with, yield”
+
+### operators
+
+Numeric operators are +, -, *, /, ** (exponent), % (modulus if applied to integers)
+String and list operators: + and * .
+Assignment operator: =
+The augmented assignment operator += (or -=) can be used like n += x which is equal to n = n + x
+Boolean relational operators: == (equal), != (not equal), >, <, >= (greater than or equal to), <= (less than or equal to)
+Boolean expressions will produce True or False
+
+## Calling Python in R
+There are a variety of ways to integrate Python code into your R projects:
+
+- Python in R Markdown — A new Python language engine for R Markdown that supports bi-directional communication between R and Python (R chunks can access Python objects and vice-versa).
+
+- Importing Python modules — The import() function enables you to import any Python module and call its functions directly from R.
+
+- Sourcing Python scripts — The source_python() function enables you to source a Python script the same way you would source() an R script (Python functions and objects defined within the script become directly available to the R session).
+
+- Python REPL — The repl_python() function creates an interactive Python console within R. Objects you create within Python are available to your R session (and vice-versa).
+
+
+## Check python version, open Python window in R and load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggplot2)
+library(reticulate)
+
+py_discover_config()
+repl_python()
+
+## Can specify alternate version of python if desired
+  ## use_python("/usr/<new>/<path>/local/bin/python")
+  ## use_python("/opt/homebrew/Caskroom/miniforge/base/bin/python")
+
+```
+Start Python script
+```{python}
+# python3 myscript.py
+```
+
+## Code with Python in RMarkdown
+The reticulate package includes a Python engine for R Markdown with the following features:
+
+- Run Python chunks in a single Python session embedded within your R session (shared variables/state between Python chunks)
+- Printing of Python output, including graphical output from matplotlib.
+- Access to objects created within Python chunks from R using the py object (e.g. py$x would access an x variable created within Python from R).
+- Access to objects created within R chunks from Python using the r object (e.g. r.x would access to x variable created within R from Python)
+
+```{python}
+2 ** 3       ## Exponent
+x = 3
+x > 1 and x <= 5
+```
+
+Format operators -- if % is applied to strings, tells python how to format a list of values in a string
+
+```{python}
+print('In %d days, I have eaten %g %s.' % (5, 3.5, 'cupcakes'))
+```
+
+
+
+Functions -- small amount of built in functions and the rest are built
+
+Type function reports type of object
+
+```{python}
+type("Let's go Ravens!")
+```
+
+Print function prints an argument to the screen
+```{python}
+print("Let's go Ravens!")
+```
+
+New functions
+```{python}
+def new_world():
+  return 'Hello world!'
+print(new_world())
+```
+
+```{python}
+def squared(x):
+ """ Return the square of a value """
+ return x ** 2
+
+print(squared(4))
+```
+
+```{python}
+def concat(*args, sep="/"):
+  return sep.join(args)
+
+concat("a", "b", "c")
+```
+
+Iteration
+
+```{python}
+for i in range(3):
+  print('Baby shark, doo doo doo doo doo doo!')
+  print('Baby shark!')
+```
+len() function can
+  - calculate length of string
+  - calculate number of elements in list
+  - calculate number of items in a dictionary
+  - calculate number elements in the tuple
+  
+```{python}
+x = 'Baby shark!'
+len(x)
+```
+
+### Methods for each type of object (dot notation)
+Name of object.name of method
+```{python}
+x = "Hello Baltimore!"
+x.split()
+```
+
+### Data structures
+Dictionaries, sets, and tuples
+```{python}
+dict = {"a" : 1, "b" : 2}
+dict['a']
+dict['b']
+```
+
+## From Python to R
+
+```{r}
+## ------------------------------------------------------------------------------------------------------------------------
+# checks to see if a folder called "data" exists; if not, it installs it
+if (!file.exists(here("data"))) {
+  dir.create(here("data"))
+}
+
+# checks to see if a file called "flights.csv" exists; if not, it saves it to the data folder
+if (!file.exists(here("data", "flights.csv"))) {
+  readr::write_csv(nycflights13::flights,
+                   file = here("data", "flights.csv")
+  )
+}
+
+nycflights13::flights %>%
+  head()
+```
+
+```{python}
+import pandas
+flights_path = "/Users/lizziecrespi/Library/CloudStorage/OneDrive-JohnsHopkins/1_PhD/1_Courses/Y2T1/Statistical Computing/biostat776classnotes/data/flights.csv"
+flights = pandas.read_csv(flights_path)
+flights = flights[flights['dest'] == "ORD"]
+flights = flights[['carrier', 'dep_delay', 'arr_delay']]
+flights = flights.dropna()
+flights
+```
+
+
+```{r}
+head(py$flights)
+py$flights_path
+class(py$flights)
+class(py$flights_path)
+```
+
+```{r}
+ggplot(py$flights, aes(x = carrier, y = arr_delay)) +
+    geom_point() +
+    geom_jitter()
+```
+### From R to Python
+```{r}
+flights <- read_csv(here("data", "flights.csv")) %>%
+    filter(dest == "ORD") %>%
+    select(carrier, dep_delay, arr_delay) %>%
+    na.omit()
+flights
+```
+```{python}
+r.flights.head(10)
+```
+### import python modules
+
+```{r}
+os <- import("os")
+os$listdir(".")
+
+pd <- import("pandas")
+test <- pd$read_csv(here("data", "flights.csv"))
+head(test)
+class(test)
+
+skl_lr <- import("sklearn.linear_model")
+skl_lr
+
+```
+### calling python scripts
+```{r}
+# source_python("secret_functions.py")
+# subject_1 <- read_subject("secret_data.csv")
+```
+
+
+
+
